@@ -1,0 +1,5 @@
+__pw_browser_take_screenshot_*.png
+uploads/
+outputs/
+build_*.py
+*.py
