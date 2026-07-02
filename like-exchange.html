@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>赞链 · LOFTER 点赞互助</title>
+<style>
+
+:root {
+  --bg: #0f0f0f; --surface: #1a1a1a; --surface2: #242424;
+  --surface3: #2e2e2e; --border: #333; --border-light: #444;
+  --text: #e8e8e8; --text-dim: #888; --text-muted: #666;
+  --accent: #ff4d6a; --accent-glow: rgba(255,77,106,0.15);
+  --accent2: #ffb347; --green: #4ade80; --blue: #60a5fa;
+  --radius: 12px; --radius-sm: 8px; --radius-lg: 20px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, 'Noto Sans SC', sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; line-height: 1.6; overflow-x: hidden;
+}
+.bg-glow { position:fixed; pointer-events:none; z-index:0; }
+.bg-glow-1 {
+  width:600px; height:600px; border-radius:50%;
+  background:radial-gradient(circle,rgba(255,77,106,0.06) 0%,transparent 70%);
+  top:-200px; right:-200px;
+}
+.bg-glow-2 {
+  width:500px; height:500px; border-radius:50%;
+  background:radial-gradient(circle,rgba(255,179,71,0.04) 0%,transparent 70%);
+  bottom:-150px; left:-150px;
+}
+.container { position:relative; z-index:2; max-width:920px; margin:0 auto; padding:40px 20px 80px; }
+
+/* Header */
+header { text-align:center; margin-bottom:48px; padding-top:20px; }
+.logo { display:inline-flex; align-items:center; gap:10px; margin-bottom:12px; }
+.logo-icon {
+  width:44px; height:44px; border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),#ff8a5c);
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; box-shadow:0 0 30px var(--accent-glow);
+}
+.logo-text { font-size:28px; font-weight:700; letter-spacing:2px; }
+.logo-text span { color:var(--accent); }
+.tagline { color:var(--text-dim); font-size:14px; letter-spacing:4px; font-weight:300; }
+
+/* Mechanism */
+.mechanism {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:32px 36px; margin-bottom:40px;
+  position:relative; overflow:hidden;
+}
+.mechanism::before {
+  content:''; position:absolute; top:0; left:0; width:4px; height:100%;
+  background:linear-gradient(to bottom,var(--accent),var(--accent2));
+}
+.mechanism h2 { font-size:15px; font-weight:700; color:var(--accent); letter-spacing:3px; margin-bottom:16px; }
+.mech-steps { display:flex; gap:8px; align-items:flex-start; flex-wrap:wrap; }
+.mech-step {
+  display:flex; align-items:center; gap:10px;
+  background:var(--surface2); border-radius:100px;
+  padding:8px 18px 8px 12px; font-size:13px; color:var(--text-dim); white-space:nowrap;
+}
+.mech-step .num {
+  width:22px; height:22px; border-radius:50%; background:var(--surface3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:var(--text); flex-shrink:0;
+}
+.mech-step em { color:var(--text); font-style:normal; font-weight:500; }
+.mech-arrow { color:var(--text-muted); font-size:14px; flex-shrink:0; padding:0 4px; }
+
+/* Dual Account Highlight */
+.dual-account-banner {
+  background:linear-gradient(135deg, rgba(96,165,250,0.1), rgba(255,77,106,0.08));
+  border:1px solid rgba(96,165,250,0.2);
+  border-radius:var(--radius); padding:16px 20px; margin-bottom:32px;
+  font-size:13px; line-height:1.8;
+}
+.dual-account-banner strong { color:var(--blue); }
+.dual-account-banner .hl { color:var(--accent); }
+
+/* Panel */
+.panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:32px; margin-bottom:24px; }
+.panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.panel-title { font-size:13px; font-weight:700; letter-spacing:2px; color:var(--text-dim); }
+.panel-badge { font-size:12px; padding:4px 14px; border-radius:100px; font-weight:500; }
+.badge-green { background:rgba(74,222,128,0.1); color:var(--green); }
+.badge-accent { background:var(--accent-glow); color:var(--accent); }
+.badge-orange { background:rgba(255,179,71,0.12); color:var(--accent2); }
+.badge-blue { background:rgba(96,165,250,0.12); color:var(--blue); }
+
+/* Login Prompt */
+.login-prompt { text-align:center; padding:48px 20px; }
+.login-prompt .icon-circle {
+  width:72px; height:72px; border-radius:50%;
+  background:var(--surface2); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 20px; font-size:32px;
+}
+.login-prompt h3 { font-size:20px; font-weight:600; margin-bottom:8px; }
+.login-prompt p { color:var(--text-dim); font-size:14px; margin-bottom:24px; }
+
+/* Buttons */
+.btn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:12px 28px; border-radius:var(--radius);
+  font-size:14px; font-weight:600; font-family:inherit;
+  border:none; cursor:pointer; transition:all 0.25s ease; text-decoration:none;
+}
+.btn:active { transform:scale(0.97); }
+.btn-primary {
+  background:linear-gradient(135deg,var(--accent),#e63e5a); color:#fff;
+  box-shadow:0 4px 20px var(--accent-glow);
+}
+.btn-primary:hover { box-shadow:0 6px 30px rgba(255,77,106,0.3); transform:translateY(-1px); }
+.btn-outline { background:transparent; color:var(--text); border:1px solid var(--border-light); }
+.btn-outline:hover { border-color:var(--text-dim); background:var(--surface2); }
+.btn-success {
+  background:linear-gradient(135deg,var(--green),#22c55e); color:#0f0f0f;
+  box-shadow:0 4px 20px rgba(74,222,128,0.2);
+}
+.btn-success:hover { box-shadow:0 6px 30px rgba(74,222,128,0.25); transform:translateY(-1px); }
+.btn-block { width:100%; justify-content:center; }
+.btn-sm { padding:8px 18px; font-size:13px; }
+.btn:disabled { opacity:0.4; cursor:not-allowed; transform:none !important; }
+
+/* Task Card */
+.task-card {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:var(--radius); padding:20px 24px;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  transition:all 0.3s ease;
+}
+.task-card:hover { border-color:var(--border-light); }
+.task-info { flex:1; min-width:0; }
+.task-user { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.task-avatar {
+  width:32px; height:32px; border-radius:50%;
+  background:linear-gradient(135deg,var(--surface3),var(--border));
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:600; flex-shrink:0; color:var(--text-dim);
+}
+.task-name { font-weight:600; font-size:14px; }
+.task-article {
+  font-size:13px; color:var(--text-dim); margin-left:42px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.task-article a { color:var(--blue); text-decoration:none; }
+.task-article a:hover { text-decoration:underline; }
+
+/* Queue */
+.queue-list { display:flex; flex-direction:column; }
+.queue-item {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.queue-item:last-child { border-bottom:none; }
+.queue-pos { width:28px; font-size:13px; font-weight:700; color:var(--text-muted); text-align:center; flex-shrink:0; }
+.queue-pos.active { color:var(--accent); }
+.queue-avatar {
+  width:28px; height:28px; border-radius:50%; background:var(--surface3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:600; flex-shrink:0; color:var(--text-dim);
+}
+.queue-name { font-size:14px; font-weight:500; flex:1; }
+.queue-status { font-size:12px; padding:3px 10px; border-radius:100px; flex-shrink:0; }
+.queue-status.waiting { background:rgba(255,179,71,0.12); color:var(--accent2); }
+.queue-status.done { background:rgba(74,222,128,0.1); color:var(--green); }
+.queue-status.pending { background:var(--surface3); color:var(--text-muted); }
+.queue-status.mine { background:var(--accent-glow); color:var(--accent); }
+
+/* Empty */
+.empty-state { text-align:center; padding:40px 20px; color:var(--text-muted); }
+.empty-state .empty-icon { font-size:36px; margin-bottom:12px; opacity:0.5; }
+.empty-state p { font-size:14px; }
+
+/* Stats */
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:32px; }
+.stat-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:20px 16px; text-align:center; }
+.stat-number { font-size:28px; font-weight:700; line-height:1.2; }
+.stat-number.accent { color:var(--accent); }
+.stat-number.green { color:var(--green); }
+.stat-number.orange { color:var(--accent2); }
+.stat-label { font-size:12px; color:var(--text-muted); margin-top:4px; letter-spacing:1px; }
+
+/* VIP */
+.vip-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:11px; padding:3px 10px; border-radius:100px;
+  background:linear-gradient(135deg,rgba(255,179,71,0.15),rgba(255,215,0,0.08));
+  color:var(--accent2); font-weight:600; letter-spacing:0.5px; border:1px solid rgba(255,179,71,0.2);
+}
+.vip-info {
+  background:linear-gradient(135deg,rgba(255,179,71,0.06),rgba(255,215,0,0.03));
+  border:1px solid rgba(255,179,71,0.15); border-radius:var(--radius);
+  padding:16px 20px; margin-bottom:20px; font-size:13px; line-height:1.8;
+}
+.vip-info strong { color:var(--accent2); }
+.vip-rank { font-size:12px; color:var(--accent2); font-weight:500; }
+.vip-quota {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:12px; padding:2px 8px; border-radius:100px;
+  background:rgba(255,179,71,0.1); color:var(--accent2);
+  border:1px solid rgba(255,179,71,0.15);
+}
+.vip-quota.exhausted { background:rgba(255,77,106,0.1); color:var(--accent); border-color:rgba(255,77,106,0.2); }
+
+/* Logs */
+.log-list { max-height:280px; overflow-y:auto; }
+.log-list::-webkit-scrollbar { width:4px; }
+.log-list::-webkit-scrollbar-track { background:transparent; }
+.log-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+.log-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.log-item:last-child { border-bottom:none; }
+.log-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.log-dot.green { background:var(--green); }
+.log-dot.accent { background:var(--accent); }
+.log-time { color:var(--text-muted); font-size:12px; flex-shrink:0; min-width:52px; }
+.log-action { flex:1; color:var(--text-dim); }
+.log-action strong { color:var(--text); font-weight:500; }
+.log-action .brand-a { color:var(--blue); }
+.log-action .brand-b { color:var(--accent2); font-weight:500; }
+
+/* Tabs */
+.tabs { display:flex; gap:4px; background:var(--surface2); border-radius:var(--radius); padding:4px; margin-bottom:24px; }
+.tab {
+  flex:1; padding:10px 16px; text-align:center; font-size:13px; font-weight:500;
+  border-radius:calc(var(--radius) - 4px); cursor:pointer; transition:all 0.25s ease;
+  color:var(--text-muted); border:none; background:transparent; font-family:inherit;
+}
+.tab.active { background:var(--surface); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,0.2); }
+.tab:hover:not(.active) { color:var(--text-dim); }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* Modal */
+.modal-overlay {
+  position:fixed; inset:0; z-index:50; background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center;
+}
+.modal { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:36px; max-width:520px; width:90%; max-height:80vh; overflow-y:auto; }
+.modal h3 { font-size:20px; font-weight:600; margin-bottom:8px; }
+.modal p { font-size:14px; color:var(--text-dim); margin-bottom:16px; line-height:1.7; }
+
+/* Form */
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:13px; font-weight:500; margin-bottom:6px; color:var(--text-dim); }
+.form-input {
+  width:100%; padding:10px 14px; background:var(--surface2);
+  border:1px solid var(--border); border-radius:var(--radius-sm);
+  color:var(--text); font-size:14px; font-family:inherit; transition:border 0.2s;
+}
+.form-input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+.form-input::placeholder { color:var(--text-muted); }
+.modal-actions { display:flex; gap:10px; margin-top:24px; }
+.modal-actions .btn { flex:1; justify-content:center; }
+
+/* Form hint */
+.form-hint { font-size:12px; color:var(--text-muted); margin-top:4px; padding-left:2px; }
+
+/* User Bar */
+.user-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px; background:var(--surface2); border:1px solid var(--border);
+  border-radius:var(--radius); margin-bottom:24px;
+}
+.user-info { display:flex; align-items:center; gap:14px; flex:1; min-width:0; }
+.user-info-main { flex:1; min-width:0; }
+.user-avatar {
+  width:40px; height:40px; border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#ff8a5c);
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; font-weight:700; color:#fff; flex-shrink:0;
+}
+.user-name-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.user-name { font-size:14px; font-weight:600; }
+.user-meta { font-size:12px; color:var(--text-dim); margin-top:2px; }
+.user-tag {
+  font-size:11px; padding:2px 8px; border-radius:100px;
+  background:rgba(96,165,250,0.12); color:var(--blue);
+}
+.user-tag.b { background:rgba(255,179,71,0.12); color:var(--accent2); }
+
+/* Success */
+.success-overlay {
+  position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);
+}
+.success-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:48px 40px 36px;
+  text-align:center; max-width:420px; width:90%;
+}
+.success-icon {
+  width:64px; height:64px; border-radius:50%;
+  background:rgba(74,222,128,0.1);
+  display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:28px;
+}
+.success-card h3 { font-size:20px; margin-bottom:8px; }
+.success-card p { color:var(--text-dim); font-size:14px; margin-bottom:24px; }
+
+/* Toast */
+.toast-container { position:fixed; bottom:24px; right:24px; z-index:100; display:flex; flex-direction:column; gap:8px; }
+.toast {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:14px 20px; font-size:13px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5); max-width:380px;
+}
+.toast.success { border-left:3px solid var(--green); }
+.toast.error { border-left:3px solid var(--accent); }
+.toast.info { border-left:3px solid var(--blue); }
+
+/* Animations */
+@keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+/* Responsive */
+@media(max-width:700px) {
+  .container { padding:24px 16px 60px; }
+  .mechanism { padding:24px 20px; }
+  .mech-steps { flex-direction:column; }
+  .mech-step { white-space:normal; width:100%; border-radius:var(--radius-sm); }
+  .mech-arrow { transform:rotate(90deg); padding:2px 0; }
+  .panel { padding:20px; }
+  .stats-grid { grid-template-columns:repeat(2,1fr); }
+  .task-card { flex-direction:column; align-items:stretch; }
+  .task-article { margin-left:42px; }
+  .toast-container { left:16px; right:16px; bottom:16px; }
+  .user-bar { flex-direction:column; gap:12px; }
+  .user-info { width:100%; }
+}
+
+.about-section { margin-top:48px; padding-top:32px; border-top:1px solid var(--border); }
+.about-section h3 { font-size:13px; letter-spacing:2px; color:var(--text-muted); margin-bottom:16px; }
+.about-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.about-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+.about-card h4 { font-size:14px; font-weight:600; margin-bottom:8px; }
+.about-card p, .about-card li { font-size:13px; color:var(--text-dim); line-height:1.7; }
+.about-card ul { list-style:none; padding:0; }
+.about-card li { padding:4px 0 4px 16px; position:relative; }
+.about-card li::before { content:'→'; position:absolute; left:0; color:var(--accent); }
+
+</style>
+</head>
+<body>
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">♥</div>
+      <div class="logo-text">赞<span>链</span></div>
+    </div>
+    <div class="tagline">LOFTER 点赞互助 · 先付后得</div>
+  </header>
+
+  <!-- Mechanism -->
+  <div class="mechanism">
+    <h2>运作机制</h2>
+    <div class="mech-steps">
+      <div class="mech-step"><span class="num">1</span> <em>双账号登录</em> —— 马甲点赞，主号收赞</div>
+      <div class="mech-arrow">→</div>
+      <div class="mech-step"><span class="num">2</span> 系统分配任务：给 <em>@用户</em> 的主号文章点红心</div>
+      <div class="mech-arrow">→</div>
+      <div class="mech-step"><span class="num">3</span> 扩展自动执行点赞（你的马甲 + 你的IP）</div>
+      <div class="mech-arrow">→</div>
+      <div class="mech-step"><span class="num">4</span> 你的主号文章进入 <em>排队队列</em></div>
+      <div class="mech-arrow">→</div>
+      <div class="mech-step"><span class="num">5</span> 别人完成点赞→你主号获得 1 赞 ✅</div>
+    </div>
+  </div>
+
+  <!-- Dual Account Banner -->
+  <div class="dual-account-banner">
+    <strong>🔒 双账号隔离机制：</strong>
+    你登录的是 <strong>马甲号A</strong>（用于给别人点赞，风险低），
+    别人回赞的目标是你的 <span class="hl">创作号B</span>（只收赞，零风险）。
+    两号分离，你的创作号 <strong>永不参与任何操作</strong>。
+  </div>
+
+  <!-- App -->
+  <div id="app">
+
+    <!-- ========== LOGIN VIEW ========== -->
+    <div id="loginView" class="panel">
+      <div class="login-prompt">
+        <div class="icon-circle">♥</div>
+        <h3>开始点赞互助</h3>
+        <p>登录你的马甲号，为他人点赞；你的创作号自动进入排队，等待回赞</p>
+        <button class="btn btn-primary" onclick="showLoginModal()">使用 LOFTER 登录</button>
+        <div style="margin-top:14px;font-size:12px;color:var(--text-muted);">
+          密码不过服务器 · 点赞IP归属你 · 主号零风险 · 可随时撤销
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== DASHBOARD ========== -->
+    <div id="dashboardView" style="display:none;">
+
+      <!-- User Bar -->
+      <div class="user-bar">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">M</div>
+          <div class="user-info-main">
+            <div class="user-name-row">
+              <span class="user-name" id="userName">minghuana</span>
+              <span class="user-tag" id="userTagA">账号A · 点赞马甲</span>
+              <span class="vip-badge" id="vipBadge" style="display:none;">⭐ VIP</span>
+            </div>
+            <div class="user-name-row" style="margin-top:4px;">
+              <span style="font-size:13px;color:var(--text-dim);">创作号：</span>
+              <span style="font-size:13px;font-weight:500;color:var(--accent2);" id="userNameB">@明画那</span>
+              <span class="user-tag b">账号B · 收赞主号</span>
+            </div>
+            <div class="user-meta">已付出 <strong id="givenCount">0</strong> 赞 · 已收获 <strong id="receivedCount">0</strong> 赞 <span id="vipQuotaDisplay" style="display:none;">· <span class="vip-quota" id="vipQuotaText">⭐ 今日插队权 3/3</span></span></div>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="logout()">退出</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number accent" id="statMyQueue">0</div>
+          <div class="stat-label">我的排队</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number green" id="statCompleted">0</div>
+          <div class="stat-label">已完成</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number orange" id="statPoolSize">0</div>
+          <div class="stat-label">任务池</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="statActiveUsers">0</div>
+          <div class="stat-label">活跃用户</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" data-tab="taskTab" onclick="switchTab('taskTab')">当前任务</button>
+        <button class="tab" data-tab="queueTab" onclick="switchTab('queueTab')">排队队列</button>
+        <button class="tab" data-tab="logTab" onclick="switchTab('logTab')">点赞溯源</button>
+      </div>
+
+      <!-- Tab: Task -->
+      <div id="taskTab" class="tab-content active">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">待执行任务</span>
+            <span class="panel-badge badge-accent" id="taskBadge">1 个任务</span>
+          </div>
+          <div id="taskContainer"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Queue -->
+      <div id="queueTab" class="tab-content">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">排队队列 · 公开透明</span>
+            <span class="panel-badge badge-green" id="queueBadge">0 人等待</span>
+          </div>
+          <div class="vip-info">
+            <strong>⭐ VIP插队规则</strong>：VIP会员优先于所有免费用户排到队首。多个VIP之间按<strong>累计点赞数</strong>排序，赞越多越靠前。
+            点击 <span style="color:var(--accent2);cursor:pointer;text-decoration:underline;" onclick="toggleVIP()">开通VIP</span> 查看更多。
+          </div>
+          <div id="vipToggle" style="display:none;margin-bottom:16px;">
+            <div style="background:var(--surface2);border:1px solid rgba(255,179,71,0.15);border-radius:var(--radius-sm);padding:16px;">
+              <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:var(--accent2);margin-bottom:4px;">⭐ VIP会员 · 每日3次插队权</div>
+                  <div style="font-size:12px;color:var(--text-dim);">有插队权 → VIP优先队列（按赞数排序）<br>插队权用完 → 回到普通队列先来后到</div>
+                </div>
+                <div style="margin-left:auto;display:flex;gap:8px;">
+                  <span style="font-size:20px;font-weight:800;color:var(--accent2);">¥9.9</span>
+                  <span style="font-size:12px;color:var(--text-muted);line-height:2;">/ 月</span>
+                  <button class="btn btn-primary btn-sm" onclick="showToast('演示版暂不支持开通VIP','info')" style="font-size:12px;">开通</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="queueContainer"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Log -->
+      <div id="logTab" class="tab-content">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">点赞溯源 · 全透明可查</span>
+            <span class="panel-badge badge-blue">实时可查</span>
+          </div>
+          <div class="log-list" id="logContainer"></div>
+        </div>
+      </div>
+
+      <!-- Claim Another -->
+      <div style="margin-top:8px;text-align:center;">
+        <button class="btn btn-outline" onclick="claimAnotherTask()" id="claimAnotherBtn">+ 再做一次任务</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- About -->
+  <div class="about-section">
+    <h3>关于赞链</h3>
+    <div class="about-grid">
+      <div class="about-card">
+        <h4>⚡ 双账号机制</h4>
+        <p><strong>马甲点赞，主号收赞。</strong> 你用一个风险低的账号A去给别人点赞，别人回赞到你的创作号B。两个账号完全隔离。</p>
+      </div>
+      <div class="about-card">
+        <h4>🔒 安全与隐私</h4>
+        <ul>
+          <li>通过浏览器扩展操作，密码不过本站</li>
+          <li>点赞请求从你浏览器发出，IP是你的</li>
+          <li>创作号B不参与任何操作，零风险</li>
+          <li>可随时撤销扩展授权</li>
+        </ul>
+      </div>
+      <div class="about-card">
+        <h4>📋 公平保障</h4>
+        <ul>
+          <li>队列公开可见，每个人能看到自己的位置</li>
+          <li>全链路日志：谁、什么时间、给谁点了赞</li>
+          <li>不完成任务就不会进队列</li>
+        </ul>
+      </div>
+      <div class="about-card">
+        <h4>❓ 常见问题</h4>
+        <ul>
+          <li><strong>能点多少次？</strong> 不限，每完成一个即可再领</li>
+          <li><strong>排队要等多久？</strong> 取决于活跃用户数</li>
+          <li><strong>马甲被封了怎么办？</strong> 换一个马甲即可，主号不受影响</li>
+          <li><strong>能点蓝手吗？</strong> 红心、蓝手均可，目前以红心为主</li>
+          <li><strong>VIP怎么插队？</strong> VIP优先排列队首，多个VIP之间按累计贡献赞数排序</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Login Modal -->
+<div id="loginModal" class="modal-overlay" style="display:none;">
+  <div class="modal">
+    <h3>双账号登录</h3>
+    <p>请分别填写你的<strong>点赞马甲号</strong>和<strong>创作主号</strong>。马甲号用于给别人点赞，创作号用于接收回赞。</p>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--text-dim);">
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <span style="font-size:18px;">🛡️</span>
+        <div>两号分离，你的创作号 <strong style="color:var(--green);">永不参与点赞操作</strong>，零风险。马甲号即使出问题也不影响创作号。</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>账号A · 点赞马甲 <span style="color:var(--accent);font-size:12px;font-weight:400;">（用于登录LOFTER，给别人点赞）</span></label>
+      <input class="form-input" id="loginUsernameA" placeholder="输入你的马甲LOFTER ID" value="xiaohao_233">
+    </div>
+    <div class="form-group">
+      <label>账号B · 创作主号 <span style="color:var(--accent2);font-size:12px;font-weight:400;">（只接收赞，不参与任何操作）</span></label>
+      <input class="form-input" id="loginUsernameB" placeholder="输入你的创作号LOFTER ID" value="明画那">
+    </div>
+    <div class="form-group">
+      <label>创作号最新文章链接 <span style="color:var(--text-muted);font-size:12px;font-weight:400;">（需要被点赞的文章）</span></label>
+      <input class="form-input" id="loginArticle" placeholder="https://xxx.lofter.com/post/..." value="https://woshiminghuana.lofter.com/post/ade60eda_34df352d1">
+    </div>
+    <div style="background:var(--accent-glow);border:1px solid rgba(255,77,106,0.2);border-radius:var(--radius-sm);padding:14px 16px;font-size:13px;color:var(--text-dim);margin-bottom:20px;">
+      ⚠️ 当前为演示版。填写信息后点击"进入演示"，模拟已登录状态展示完整业务逻辑。
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeLoginModal()">取消</button>
+      <button class="btn btn-primary" onclick="doLogin()">进入演示</button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div id="successOverlay" class="success-overlay" style="display:none;">
+  <div class="success-card">
+    <div class="success-icon">✓</div>
+    <h3 id="successTitle">点赞成功！</h3>
+    <p id="successDesc">你的创作号已进入排队队列，等待下一个人来点赞。</p>
+    <button class="btn btn-primary btn-block" onclick="closeSuccess()">继续</button>
+  </div>
+</div>
+
+<script>
+// ========== DATA ==========
+const DEMO_USERS = [
+  {id:'u1',name:'风铃草',avatar:'风',main:'风吹麦浪',vip:false,likesGiven:12},
+  {id:'u2',name:'星河入梦',avatar:'星',main:'星河LongNight',vip:true,likesGiven:45},
+  {id:'u3',name:'鹿鸣',avatar:'鹿',main:'鹿鸣呦呦',vip:true,likesGiven:89},
+  {id:'u4',name:'云栖',avatar:'云',main:'云栖小筑',vip:false,likesGiven:7},
+  {id:'u5',name:'半盏流年',avatar:'半',main:'半盏茶',vip:true,likesGiven:62},
+  {id:'u6',name:'橘子海',avatar:'橘',main:'橘子海里',vip:false,likesGiven:23},
+  {id:'u7',name:'北冥有鱼',avatar:'北',main:'北冥K',vip:true,likesGiven:51},
+  {id:'u8',name:'青山',avatar:'青',main:'青山如黛',vip:false,likesGiven:8},
+  {id:'u9',name:'月亮不睡',avatar:'月',main:'月亮不睡我不睡',vip:false,likesGiven:3},
+  {id:'u10',name:'晚风',avatar:'晚',main:'晚风诗集',vip:true,likesGiven:34},
+  {id:'u11',name:'听雨',avatar:'听',main:'听雨轩',vip:false,likesGiven:16},
+  {id:'u12',name:'南风知意',avatar:'南',main:'南风知我意',vip:true,likesGiven:75},
+];
+
+const DEMO_ARTICLES = [
+  'post/ade60eda_34df352d1','post/ade60eda_2a1b3c4d5',
+  'post/ade60eda_5e6f7a8b9','post/ade60eda_0c1d2e3f4',
+  'post/ade60eda_8a9b0c1d2','post/ade60eda_3e4f5a6b7',
+  'post/ade60eda_c8d9e0f1a','post/ade60eda_2b3c4d5e6',
+  'post/ade60eda_f7a8b9c0d','post/ade60eda_1e2f3a4b5',
+];
+
+// ========== STATE ==========
+let state = {
+  loggedIn: false,
+  userA: null,      // 马甲号（点赞用）
+  userB: null,      // 创作号（收赞用）
+  myArticle: '',
+  task: null,
+  queue: [],
+  logs: [],
+  givenCount: 0,
+  receivedCount: 0,
+  completedTasks: new Set(),
+  historyGiven: new Set(),
+  isVIP: false,
+  vipQuota: 3,
+};
+
+// ========== MODALS ==========
+function showLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
+function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
+
+function doLogin() {
+  const usernameA = document.getElementById('loginUsernameA').value.trim() || 'xiaohao_233';
+  const usernameB = document.getElementById('loginUsernameB').value.trim() || '明画那';
+  const article = document.getElementById('loginArticle').value.trim() || 'https://woshiminghuana.lofter.com/post/ade60eda_34df352d1';
+
+  state.loggedIn = true;
+  state.userA = { id:'my_a', name:usernameA, avatar:usernameA.charAt(0).toUpperCase() };
+  state.userB = { id:'my_b', name:usernameB, avatar:usernameB.charAt(0).toUpperCase() };
+  state.myArticle = article;
+  state.isVIP = false;
+  state.vipQuota = 3;
+
+  closeLoginModal();
+  renderDashboard();
+  showToast('登录成功！你的马甲号已就绪，创作号等待回赞', 'success');
+}
+
+function logout() {
+  state.loggedIn = false; state.userA = null; state.userB = null;
+  state.task = null; state.queue = []; state.logs = [];
+  state.givenCount = 0; state.receivedCount = 0;
+  state.completedTasks = new Set(); state.historyGiven = new Set();
+  document.getElementById('loginView').style.display = 'block';
+  document.getElementById('dashboardView').style.display = 'none';
+}
+
+// ========== RENDER ==========
+function renderDashboard() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('dashboardView').style.display = 'block';
+
+  document.getElementById('userAvatar').textContent = state.userA.avatar;
+  document.getElementById('userName').textContent = state.userA.name;
+  document.getElementById('userNameB').textContent = '@' + state.userB.name;
+
+  // VIP badge & quota
+  const vipBadge = document.getElementById('vipBadge');
+  const vipQuotaDisplay = document.getElementById('vipQuotaDisplay');
+  const vipQuotaText = document.getElementById('vipQuotaText');
+  if (state.isVIP) {
+    vipBadge.style.display = 'inline-flex';
+    vipQuotaDisplay.style.display = 'inline';
+    const used = 3 - state.vipQuota;
+    vipQuotaText.textContent = '⭐ 今日插队权 ' + used + '/3';
+    vipQuotaText.className = 'vip-quota' + (state.vipQuota <= 0 ? ' exhausted' : '');
+  } else {
+    vipBadge.style.display = 'none';
+    vipQuotaDisplay.style.display = 'none';
+  }
+
+  if (state.queue.length === 0) initDemoData();
+  if (!state.task) assignTask();
+
+  renderStats(); renderTask(); renderQueue(); renderLogs();
+}
+
+function initDemoData() {
+  const shuffled = [...DEMO_USERS].sort(() => Math.random() - 0.5);
+  state.queue = shuffled.slice(0,5).map((u,i) => ({
+    id: u.id, name: u.main, avatar: u.avatar,
+    position: i+1, vip: u.vip, likesGiven: u.likesGiven,
+    vipQuota: u.vip ? Math.floor(Math.random()*4) : 0,
+    article: DEMO_ARTICLES[Math.floor(Math.random()*DEMO_ARTICLES.length)],
+    status: i===0 ? 'waiting' : 'pending',
+    isMyMain: false, _order: i,
+  }));
+
+  const now = Date.now();
+  state.logs = [
+    { id:'l1', type:'give', from:'你(A:'+state.userA.name+')', to:'风铃草(A)', time:new Date(now-60000) },
+    { id:'l2', type:'receive', from:'星河入梦(A)', to:'你(A:'+state.userA.name+')', time:new Date(now-120000) },
+    { id:'l3', type:'give', from:'你(A:'+state.userA.name+')', to:'鹿鸣(A)', time:new Date(now-300000) },
+    { id:'l4', type:'receive', from:'云栖(A)', to:'你(A:'+state.userA.name+')', time:new Date(now-600000) },
+  ];
+  state.givenCount = 2;
+  state.receivedCount = 2;
+  state.historyGiven = new Set(['u2','u3']);
+}
+
+function assignTask() {
+  const available = DEMO_USERS.filter(u => !state.historyGiven.has(u.id));
+  if (available.length === 0) { state.historyGiven.clear(); return assignTask(); }
+  const target = available[Math.floor(Math.random()*available.length)];
+  state.task = {
+    targetId: target.id,
+    targetName: target.name,
+    targetMain: target.main,
+    targetAvatar: target.avatar,
+    article: DEMO_ARTICLES[Math.floor(Math.random()*DEMO_ARTICLES.length)],
+    completed: false,
+  };
+}
+
+// ========== STATS ==========
+function renderStats() {
+  document.getElementById('statMyQueue').textContent = state.queue.filter(u=>u.status==='waiting').length;
+  document.getElementById('statCompleted').textContent = state.receivedCount;
+  document.getElementById('statPoolSize').textContent = DEMO_USERS.length + 3;
+  document.getElementById('statActiveUsers').textContent = DEMO_USERS.length;
+}
+
+// ========== TASK ==========
+function renderTask() {
+  const container = document.getElementById('taskContainer');
+  const badge = document.getElementById('taskBadge');
+  if (!state.task || state.task.completed) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">✓</div><p>当前没有待完成任务</p></div>';
+    badge.textContent = '0 个任务'; return;
+  }
+  badge.textContent = '1 个任务';
+  const articleId = state.task.article.replace('post/','');
+  let vipNote = '';
+  if (state.isVIP) {
+    const used = 3 - state.vipQuota;
+    if (state.vipQuota > 0) {
+      vipNote = '<div style="margin-top:8px;font-size:12px;color:var(--accent2);">⭐ 你还有 <strong>'+state.vipQuota+'</strong> 次插队权可用，完成后你的文章将插队到VIP队列首位</div>';
+    } else {
+      vipNote = '<div style="margin-top:8px;font-size:12px;color:var(--accent);">⚠️ 今日插队权已用完，完成后你的文章将进入普通队列排队</div>';
+    }
+  } else {
+    vipNote = '<div style="margin-top:8px;font-size:12px;color:var(--text-muted);">💡 开通VIP可获得每日3次插队权 <button class="btn btn-sm" style="font-size:11px;padding:2px 8px;margin-left:4px;" onclick="showVIPInfo()">了解</button></div>';
+  }
+  container.innerHTML = '<div class="task-card">' +
+    '<div class="task-info">' +
+      '<div class="task-user">' +
+        '<div class="task-avatar">'+state.task.targetAvatar+'</div>' +
+        '<span class="task-name">@'+state.task.targetName+'</span>' +
+        '<span style="font-size:11px;color:var(--text-dim);">(创作号：@'+state.task.targetMain+')</span>' +
+      '</div>' +
+      '<div class="task-article">给你的马甲号分配任务 — 去给 <strong>@'+state.task.targetMain+'</strong> 的最新文章点红心 → ' +
+        '<a href="https://xxx.lofter.com/'+state.task.article+'" target="_blank">'+articleId+'</a>' +
+      '</div>' +
+      '<div style="margin-top:6px;font-size:12px;color:var(--text-muted);">你用的马甲：<strong style="color:var(--accent);">'+state.userA.name+'</strong> · 对方收到赞的是创作号：<strong style="color:var(--accent2);">@'+state.task.targetMain+'</strong></div>' +
+      vipNote +
+    '</div>' +
+    '<button class="btn btn-success btn-sm" onclick="executeTask()" id="executeBtn">执行点赞</button>' +
+  '</div>';
+}
+
+function executeTask() {
+  const btn = document.getElementById('executeBtn');
+  btn.disabled = true; btn.textContent = '执行中...';
+  setTimeout(() => {
+    const task = state.task;
+    state.historyGiven.add(task.targetId);
+    state.givenCount++;
+    state.task.completed = true;
+
+    // 消耗VIP插队权
+    if (state.isVIP && state.vipQuota > 0) {
+      state.vipQuota--;
+    }
+
+    state.logs.unshift({
+      id:'l'+Date.now(), type:'give',
+      from:'你(A:'+state.userA.name+')',
+      to:task.targetName+'(A)',
+      time:new Date(),
+    });
+
+    // 创作号进入队列
+    state.queue.push({
+      id:'my_b', name:state.userB.name, avatar:state.userB.avatar,
+      position:state.queue.length+1,
+      article:state.myArticle.split('/').pop()||'最新文章',
+      status:'waiting', isMyMain:true,
+    });
+    state.queue.forEach((item,i)=>{item.position=i+1;});
+
+    renderStats(); renderTask(); renderQueue(); renderLogs();
+    updateUserPoints();
+
+    showSuccess('点赞成功！',
+      '你的马甲号 @'+state.userA.name+' 已为 @'+task.targetMain+' 点赞 ✅\n' +
+      '你的创作号 @'+state.userB.name+' 已排入队列，当前第 '+state.queue.length+' 位'
+    );
+  }, 1500);
+}
+
+function claimAnotherTask() {
+  if (state.task && !state.task.completed) { showToast('请先完成当前任务','info'); return; }
+  assignTask(); renderTask(); showToast('已为你分配新任务','success');
+}
+
+// ========== QUEUE ==========
+function renderQueue() {
+  const container = document.getElementById('queueContainer');
+  const badge = document.getElementById('queueBadge');
+  if (state.queue.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><p>队列为空</p></div>';
+    badge.textContent = '0 人等待'; return;
+  }
+  // VIP排序：有插队权的VIP优先（按likesGiven降序），然后普通用户（按加入顺序）
+  const waitingVIP = state.queue.filter(item => item.isMyMain || (item.vip && item.vipQuota > 0 && item.status !== 'done'));
+  const waitingNormal = state.queue.filter(item => !item.isMyMain && (!item.vip || item.vipQuota <= 0 || item.status === 'done') && item.status !== 'done');
+  const completed = state.queue.filter(item => item.status === 'done');
+
+  // 为每个项目标记初始order，用于排序
+  state.queue.forEach((item,i) => { if(!item._order) item._order=i; });
+
+  const sortedVIP = waitingVIP.sort((a,b) => {
+    if (a.isMyMain) return -1;
+    if (b.isMyMain) return 1;
+    const aLikes = (a.likesGiven||0);
+    const bLikes = (b.likesGiven||0);
+    return bLikes - aLikes;
+  });
+  const sortedNormal = waitingNormal.sort((a,b) => (a._order||0) - (b._order||0));
+  const sorted = [...sortedVIP, ...sortedNormal, ...completed];
+
+  badge.textContent = state.queue.length + ' 人等待';
+  container.innerHTML = '<div class="queue-list">' +
+    sorted.map((item,i) => {
+      const isMyMain = item.isMyMain;
+      const posClass = isMyMain ? 'active' : '';
+      let statusText, statusClass;
+      if (isMyMain) { statusText='等待回赞'; statusClass='mine'; }
+      else if (i===0 && item.status==='waiting') { statusText='即将轮到'; statusClass='done'; }
+      else if (item.status==='done') { statusText='已完成'; statusClass='done'; }
+      else { statusText='排队中'; statusClass='pending'; }
+      const displayName = isMyMain ? item.name + '（你的创作号）' : '@' + item.name;
+      const vipTag = item.vip ? '<span class="vip-badge" style="font-size:10px;padding:1px 6px;margin-left:4px;">⭐VIP</span>' : '';
+      const vipRank = (item.vip && !isMyMain) ? '<span class="vip-rank"> · 贡献'+item.likesGiven+'赞</span>' : '';
+      const quotaTag = (item.vip && !isMyMain) ? '<span class="vip-quota" style="font-size:10px;margin-left:4px;">插队权 '+item.vipQuota+'/3</span>' : '';
+      return '<div class="queue-item" style="animation:slideUp 0.3s ease both;animation-delay:'+(i*0.05)+'s">' +
+        '<div class="queue-pos '+posClass+'">'+(isMyMain?'▶':(i+1))+'</div>' +
+        '<div class="queue-avatar">'+item.avatar+'</div>' +
+        '<div class="queue-name">' + (isMyMain ? '<strong style="color:var(--accent2);">'+displayName+'</strong>' : displayName) + vipTag + vipRank + quotaTag + '</div>' +
+        '<div class="queue-status '+statusClass+'">'+statusText+'</div>' +
+      '</div>';
+    }).join('') +
+  '</div>';
+}
+
+// ========== LOGS ==========
+function renderLogs() {
+  const container = document.getElementById('logContainer');
+  if (state.logs.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>暂无记录</p></div>'; return;
+  }
+  container.innerHTML = state.logs.map(log => {
+    const timeStr = (d=>{return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')})(log.time);
+    let actionText, dotClass;
+    if (log.type === 'give') {
+      actionText = '<span class="brand-a">[点赞]</span> <strong>'+log.from+'</strong> → '+log.to;
+      dotClass = 'accent';
+    } else {
+      actionText = '<span class="brand-b">[回赞]</span> <strong>'+log.from+'</strong> → '+log.to;
+      dotClass = 'green';
+    }
+    return '<div class="log-item"><div class="log-dot '+dotClass+'"></div><div class="log-time">'+timeStr+'</div><div class="log-action">'+actionText+'</div></div>';
+  }).join('');
+}
+
+function updateUserPoints() {
+  document.querySelector('.user-meta').innerHTML =
+    '已付出 <strong>'+state.givenCount+'</strong> 赞 · 已收获 <strong>'+state.receivedCount+'</strong> 赞';
+}
+
+// ========== UI HELPERS ==========
+function switchTab(tabId) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.tab[data-tab="'+tabId+'"]').classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+function showToast(msg,type) {
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div'); t.className='toast '+type; t.textContent=msg;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s';},2500);
+  setTimeout(()=>t.remove(),3000);
+}
+
+function toggleVIP() {
+  const el = document.getElementById('vipToggle');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function showVIPInfo() {
+  toggleVIP();
+  document.getElementById('vipToggle').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function showSuccess(title,desc) {
+  document.getElementById('successTitle').textContent=title;
+  document.getElementById('successDesc').textContent=desc;
+  document.getElementById('successOverlay').style.display='flex';
+}
+function closeSuccess() { document.getElementById('successOverlay').style.display='none'; }
+
+// ========== SIMULATION ==========
+setInterval(() => {
+  if (!state.loggedIn) return;
+  const waiting = state.queue.filter(u => u.status==='waiting' && !u.isMyMain);
+  if (waiting.length === 0) return;
+
+  const completed = waiting[0];
+  state.queue = state.queue.filter(u => u.id !== completed.id);
+
+  const myInQueue = state.queue.find(u => u.isMyMain);
+  if (myInQueue) {
+    state.receivedCount++;
+    state.logs.unshift({
+      id:'l'+Date.now(), type:'receive',
+      from:completed.name+'(A)',
+      to:'你(A:'+state.userA.name+')',
+      time:new Date(),
+    });
+    updateUserPoints(); renderLogs(); renderStats();
+  }
+
+  state.queue.forEach((item,i)=>{item.position=i+1;});
+  renderQueue();
+
+  const myPos = state.queue.findIndex(u => u.isMyMain);
+  if (myPos === 0 && state.queue.length > 0) {
+    showToast('你的创作号已排到队首，很快就有人来回赞！','info');
+  }
+}, 8000 + Math.random() * 5000);
+</script>
+</body>
+</html>

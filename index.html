@@ -1,0 +1,690 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>赞链 · LOFTER 点赞互助平台</title>
+<style>
+:root {
+  --bg:#0f0f0f; --surface:#1a1a1a; --surface2:#242424; --surface3:#2e2e2e;
+  --border:#333; --border-light:#444; --text:#e8e8e8; --text-dim:#888; --text-muted:#666;
+  --accent:#ff4d6a; --accent-glow:rgba(255,77,106,0.15);
+  --accent2:#ffb347; --accent2-dim:rgba(255,179,71,0.12);
+  --green:#4ade80; --blue:#60a5fa; --blue-dim:rgba(96,165,250,0.12);
+  --radius:12px; --radius-sm:8px; --radius-lg:20px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  font-family: -apple-system, 'Noto Sans SC', 'PingFang SC', sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; line-height:1.6; overflow-x:hidden;
+}
+
+/* Nav */
+nav {
+  position:sticky; top:0; z-index:30;
+  background:rgba(15,15,15,0.85); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border); padding:0 24px;
+}
+.nav-inner {
+  max-width:1100px; margin:0 auto; display:flex;
+  align-items:center; justify-content:space-between; height:56px;
+}
+.nav-logo { display:flex; align-items:center; gap:8px; font-weight:700; font-size:17px; }
+.nav-logo span { color:var(--accent); }
+.nav-links { display:flex; gap:20px; list-style:none; }
+.nav-links a { color:var(--text-dim); text-decoration:none; font-size:13px; transition:color 0.2s; white-space:nowrap; }
+.nav-links a:hover { color:var(--text); }
+.nav-cta { 
+  padding:6px 18px; border-radius:100px; background:var(--accent);
+  color:#fff !important; font-weight:600; font-size:13px;
+}
+@media(max-width:700px) {
+  .nav-links { display:none; }
+}
+
+/* Sections */
+section { padding:80px 24px; max-width:1100px; margin:0 auto; }
+.section-label {
+  display:inline-block; font-size:12px; font-weight:700; letter-spacing:3px;
+  text-transform:uppercase; color:var(--accent); margin-bottom:12px;
+}
+.section-title { font-size:32px; font-weight:700; margin-bottom:16px; letter-spacing:-0.5px; }
+.section-sub { font-size:16px; color:var(--text-dim); max-width:600px; line-height:1.8; margin-bottom:40px; }
+
+/* Hero */
+.hero { padding:100px 24px 80px; text-align:center; max-width:1100px; margin:0 auto; }
+.hero-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 16px; border-radius:100px;
+  background:var(--accent-glow); color:var(--accent); font-size:13px; font-weight:500;
+  margin-bottom:24px;
+}
+.hero h1 { font-size:48px; font-weight:800; letter-spacing:-1px; margin-bottom:20px; line-height:1.2; }
+.hero h1 span { background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.hero p { font-size:18px; color:var(--text-dim); max-width:560px; margin:0 auto 36px; line-height:1.8; }
+.hero-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+.hero-stats {
+  display:flex; gap:48px; justify-content:center; margin-top:56px;
+  padding:32px; background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); max-width:600px; margin-left:auto; margin-right:auto;
+}
+.hero-stat { text-align:center; }
+.hero-stat-num { font-size:28px; font-weight:700; font-family:serif; }
+.hero-stat-num.accent { color:var(--accent); }
+.hero-stat-num.green { color:var(--green); }
+.hero-stat-num.gold { color:var(--accent2); }
+.hero-stat-label { font-size:13px; color:var(--text-muted); margin-top:4px; }
+
+/* VIP */
+.vip-section {
+  background:linear-gradient(135deg,var(--surface),#1c1810);
+  border:1px solid var(--border); border-radius:var(--radius-lg);
+  padding:48px 40px; margin:0 24px; position:relative; overflow:hidden;
+}
+.vip-section::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg,var(--accent2),#ffd700,var(--accent2));
+  opacity:0.6;
+}
+.vip-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-top:32px; }
+.vip-card {
+  background:var(--surface2); border:1px solid rgba(255,179,71,0.15);
+  border-radius:var(--radius); padding:28px; text-align:center;
+  transition:all 0.3s;
+}
+.vip-card:hover { border-color:var(--accent2); transform:translateY(-2px); }
+.vip-card.featured {
+  background:linear-gradient(180deg,rgba(255,179,71,0.08),var(--surface2));
+  border-color:var(--accent2); position:relative;
+}
+.vip-card.featured .vip-badge {
+  display:inline-block; font-size:11px; padding:3px 12px; border-radius:100px;
+  background:linear-gradient(135deg,var(--accent2),#ffd700); color:#1a1a1a;
+  font-weight:700; letter-spacing:1px; margin-bottom:12px;
+}
+.vip-card-icon { font-size:36px; margin-bottom:12px; }
+.vip-card h4 { font-size:16px; font-weight:600; margin-bottom:4px; }
+.vip-card .price { font-size:28px; font-weight:800; color:var(--accent2); margin:8px 0; }
+.vip-card .price span { font-size:14px; font-weight:400; color:var(--text-muted); }
+.vip-card ul { list-style:none; padding:0; margin-top:12px; text-align:left; }
+.vip-card li { font-size:13px; color:var(--text-dim); padding:6px 0 6px 20px; position:relative; }
+.vip-card li::before { content:'✓'; position:absolute; left:0; color:var(--green); font-weight:700; }
+.vip-card .btn { margin-top:16px; }
+
+/* Buttons */
+.btn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:12px 28px; border-radius:var(--radius);
+  font-size:14px; font-weight:600; font-family:inherit;
+  border:none; cursor:pointer; transition:all 0.25s ease; text-decoration:none;
+}
+.btn:active { transform:scale(0.97); }
+.btn-primary {
+  background:linear-gradient(135deg,var(--accent),#e63e5a); color:#fff;
+  box-shadow:0 4px 20px var(--accent-glow);
+}
+.btn-primary:hover { box-shadow:0 6px 30px rgba(255,77,106,0.3); transform:translateY(-1px); }
+.btn-outline { background:transparent; color:var(--text); border:1px solid var(--border-light); }
+.btn-outline:hover { border-color:var(--text-dim); background:var(--surface2); }
+.btn-lg { padding:14px 36px; font-size:15px; }
+
+/* Mechanism */
+.mech-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+.mech-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:28px 20px; text-align:center;
+}
+.mech-card-num {
+  width:36px; height:36px; border-radius:50%; background:var(--surface2);
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 16px; font-size:14px; font-weight:700; color:var(--accent);
+}
+.mech-card h4 { font-size:14px; font-weight:600; margin-bottom:8px; }
+.mech-card p { font-size:13px; color:var(--text-dim); line-height:1.7; }
+.mech-arrow-h { display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--text-muted); }
+
+/* Dual Account */
+.dual-section {
+  background:linear-gradient(135deg,var(--surface),var(--surface2));
+  border:1px solid var(--border); border-radius:var(--radius-lg);
+  padding:48px 40px; margin:0 24px;
+}
+.dual-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:32px; }
+.dual-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:28px; position:relative;
+}
+.dual-card .tag {
+  display:inline-block; font-size:11px; font-weight:600; letter-spacing:1px;
+  padding:3px 10px; border-radius:100px; margin-bottom:12px;
+}
+.dual-card .tag.a { background:var(--blue-dim); color:var(--blue); }
+.dual-card .tag.b { background:var(--accent2-dim); color:var(--accent2); }
+.dual-card h4 { font-size:16px; margin-bottom:8px; }
+.dual-card p { font-size:13px; color:var(--text-dim); line-height:1.8; }
+.dual-card ul { list-style:none; padding:0; margin-top:12px; }
+.dual-card li { font-size:13px; color:var(--text-dim); padding:4px 0 4px 16px; position:relative; }
+.dual-card li::before { content:'✓'; position:absolute; left:0; color:var(--green); font-weight:700; }
+.dual-divider {
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; color:var(--text-muted);
+}
+
+/* Extension */
+.ext-section {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:48px 40px;
+  margin:0 24px;
+}
+.ext-grid { display:grid; grid-template-columns:1fr 1fr; gap:32px; margin-top:32px; align-items:center; }
+.ext-features { display:flex; flex-direction:column; gap:16px; }
+.ext-feat {
+  display:flex; gap:14px; align-items:flex-start;
+  padding:16px; background:var(--surface2); border-radius:var(--radius);
+  border:1px solid var(--border);
+}
+.ext-feat-icon { font-size:20px; flex-shrink:0; margin-top:2px; }
+.ext-feat h5 { font-size:14px; font-weight:600; margin-bottom:4px; }
+.ext-feat p { font-size:13px; color:var(--text-dim); }
+.ext-screenshot {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:var(--radius); padding:40px; text-align:center;
+  min-height:240px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:12px;
+}
+.ext-screenshot .placeholder-icon { font-size:48px; opacity:0.3; }
+.ext-screenshot .placeholder-text { font-size:13px; color:var(--text-muted); }
+.ext-screenshot .placeholder-sub { font-size:11px; color:var(--text-muted); opacity:0.6; }
+
+/* Flow */
+.flow-steps { display:flex; flex-direction:column; gap:16px; max-width:600px; }
+.flow-step {
+  display:flex; gap:16px; align-items:flex-start;
+  padding:20px; background:var(--surface); border-radius:var(--radius);
+  border:1px solid var(--border); position:relative;
+}
+.flow-step-num {
+  width:32px; height:32px; border-radius:50%;
+  background:var(--accent); color:#fff; display:flex;
+  align-items:center; justify-content:center;
+  font-size:13px; font-weight:700; flex-shrink:0;
+}
+.flow-step h4 { font-size:14px; font-weight:600; margin-bottom:4px; }
+.flow-step p { font-size:13px; color:var(--text-dim); }
+.flow-step .tag {
+  display:inline-block; font-size:11px; padding:2px 8px; border-radius:100px;
+  background:var(--blue-dim); color:var(--blue); margin-top:6px;
+}
+
+/* Safety */
+.safety-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.safety-card {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:var(--radius); padding:28px; text-align:center;
+}
+.safety-icon { font-size:32px; margin-bottom:12px; }
+.safety-card h4 { font-size:15px; font-weight:600; margin-bottom:8px; }
+.safety-card p { font-size:13px; color:var(--text-dim); }
+
+/* FAQ */
+.faq-list { max-width:700px; }
+.faq-item {
+  border-bottom:1px solid var(--border); padding:0; overflow:hidden;
+}
+.faq-q {
+  padding:18px 0; display:flex; justify-content:space-between;
+  align-items:center; cursor:pointer; font-size:15px; font-weight:500;
+  background:none; border:none; color:var(--text); width:100%;
+  text-align:left; font-family:inherit;
+}
+.faq-q .arrow { font-size:12px; transition:transform 0.3s; color:var(--text-muted); }
+.faq-q.open .arrow { transform:rotate(180deg); }
+.faq-a {
+  max-height:0; overflow:hidden; transition:max-height 0.3s ease, padding 0.3s;
+  font-size:14px; color:var(--text-dim); line-height:1.8;
+}
+.faq-a.open { max-height:300px; padding-bottom:18px; }
+
+/* Demo iframe */
+.demo-wrapper {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); overflow:hidden;
+}
+.demo-wrapper iframe { width:100%; height:700px; border:none; display:block; border-radius:8px; }
+
+/* Download */
+.download-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.dl-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:32px 24px; text-align:center;
+  transition:all 0.3s;
+}
+.dl-card:hover { border-color:var(--border-light); }
+.dl-icon { font-size:40px; margin-bottom:12px; }
+.dl-card h4 { font-size:16px; font-weight:600; margin-bottom:4px; }
+.dl-card p { font-size:13px; color:var(--text-muted); margin-bottom:16px; }
+.dl-badge {
+  display:inline-block; font-size:11px; padding:4px 12px; border-radius:100px;
+  background:var(--accent2-dim); color:var(--accent2); font-weight:500;
+}
+
+/* Footer */
+footer {
+  text-align:center; padding:40px 24px; border-top:1px solid var(--border);
+  color:var(--text-muted); font-size:13px;
+}
+
+/* Responsive */
+@media(max-width:900px) {
+  .mech-grid { grid-template-columns:1fr 1fr; }
+  .mech-arrow-h { display:none; }
+  .dual-grid { grid-template-columns:1fr; }
+  .ext-grid { grid-template-columns:1fr; }
+  .safety-grid { grid-template-columns:1fr; }
+  .download-grid { grid-template-columns:1fr; }
+}
+@media(max-width:700px) {
+  .hero h1 { font-size:32px; }
+  .hero-stats { gap:24px; flex-wrap:wrap; }
+  .section-title { font-size:24px; }
+  section { padding:48px 16px; }
+  .dual-section, .ext-section { padding:28px 20px; margin:0 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">♥ 赞<span>链</span></div>
+    <ul class="nav-links">
+      <li><a href="#mechanism">机制</a></li>
+      <li><a href="#dual">双账号</a></li>
+      <li><a href="#extension">扩展</a></li>
+      <li><a href="#flow">上手指南</a></li>
+      <li><a href="#safety">安全</a></li>
+      <li><a href="#vip">VIP</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#demo">在线体验</a></li>
+      <li><a href="#download" class="nav-cta">下载扩展</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero" id="hero">
+  <div class="hero-badge">🛡️ 双账号隔离 · 创作号零风险</div>
+  <h1>用马甲点赞，<span>主号收赞</span></h1>
+  <p>你的点赞号只负责付出，创作号安全收赞。<br>两号分离，你的心血账号永不参与任何操作。</p>
+  <div class="hero-actions">
+    <a href="#demo" class="btn btn-primary btn-lg">在线体验 →</a>
+    <a href="#download" class="btn btn-outline btn-lg">下载浏览器扩展</a>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-num accent">1,200+</div><div class="hero-stat-label">累计点赞</div></div>
+    <div class="hero-stat"><div class="hero-stat-num green">98%</div><div class="hero-stat-label">回赞完成率</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">0</div><div class="hero-stat-label">创作号风险</div></div>
+  </div>
+</div>
+
+<!-- Mechanism -->
+<section id="mechanism">
+  <div class="section-label">核心机制</div>
+  <h2 class="section-title">先付出，后收获</h2>
+  <p class="section-sub">你为别人点一个赞，你的创作号就能进排队队列，等一个人来回赞。多劳多得，公平透明。</p>
+  <div class="mech-grid">
+    <div class="mech-card">
+      <div class="mech-card-num">1</div>
+      <h4>双账号登录</h4>
+      <p>用马甲号A登录，填写创作号B的用户名。B不参与任何操作。</p>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--text-muted);">→</div>
+    <div class="mech-card">
+      <div class="mech-card-num">2</div>
+      <h4>领取任务</h4>
+      <p>系统分配一个未点过的用户，去给 ta 的创作号文章点红心。</p>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--text-muted);">→</div>
+    <div class="mech-card">
+      <div class="mech-card-num">3</div>
+      <h4>扩展执行</h4>
+      <p>浏览器扩展自动用你的马甲号完成点赞，IP归属你，安全无痕。</p>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--text-muted);">→</div>
+    <div class="mech-card">
+      <div class="mech-card-num">4</div>
+      <h4>排队等待</h4>
+      <p>你的创作号自动进入公开排队队列，位置透明可见。</p>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--text-muted);">→</div>
+    <div class="mech-card">
+      <div class="mech-card-num">5</div>
+      <h4>获得回赞</h4>
+      <p>下一个人完成点赞 → 你的创作号收到 1 赞 ✅ 循环继续。</p>
+    </div>
+  </div>
+</section>
+
+<!-- Dual Account -->
+<section id="dual" style="max-width:100%;padding:80px 0;">
+  <div class="dual-section">
+    <div style="text-align:center;">
+      <div class="section-label">双账号隔离</div>
+      <h2 class="section-title" style="margin-bottom:8px;">点赞号和创作号，完全分离</h2>
+      <p style="font-size:15px;color:var(--text-dim);max-width:560px;margin:0 auto 12px;line-height:1.8;">
+        这是赞链最核心的安全设计。你用一个风险极低的马甲号去点赞，别人回赞到你的创作号。<br>
+        <strong style="color:var(--accent);">创作号永不参与任何点赞操作</strong>，即使马甲被封也丝毫无损。
+      </p>
+    </div>
+    <div class="dual-grid">
+      <div class="dual-card">
+        <div class="tag a">账号 A · 点赞马甲</div>
+        <h4>用于给别人点赞</h4>
+        <p>一个不写文、不重要的空号，专门用于登录和点赞操作。即使这个号出现问题，你也不会有任何损失。</p>
+        <ul>
+          <li>因点赞被封也无所谓</li>
+          <li>不暴露你的创作身份</li>
+          <li>随时可以换一个马甲</li>
+        </ul>
+      </div>
+      <div class="dual-card">
+        <div class="tag b">账号 B · 创作主号</div>
+        <h4>只用于接收回赞</h4>
+        <p>你的心血创作号，只提供一个用户名给系统。它不登录、不授权、不参与任何操作——只等别人来点赞。</p>
+        <ul>
+          <li>零操作、零风险</li>
+          <li>不授权、不登录、不暴露密码</li>
+          <li>马甲出问题完全不影响</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Extension -->
+<section id="extension" style="max-width:100%;padding:80px 0;">
+  <div class="ext-section">
+    <div style="text-align:center;">
+      <div class="section-label">浏览器扩展</div>
+      <h2 class="section-title" style="margin-bottom:8px;">安装一次，自动执行</h2>
+      <p style="font-size:15px;color:var(--text-dim);max-width:500px;margin:0 auto 12px;line-height:1.8;">
+        只需安装一次浏览器扩展，之后在赞链网站上点一下"执行点赞"，扩展就帮你在后台自动完成。
+      </p>
+    </div>
+    <div class="ext-grid">
+      <div class="ext-features">
+        <div class="ext-feat">
+          <div class="ext-feat-icon">🔒</div>
+          <div>
+            <h5>密码不过本站</h5>
+            <p>你在LOFTER官网正常登录（QQ扫码/微博等），赞链不碰你的密码。</p>
+          </div>
+        </div>
+        <div class="ext-feat">
+          <div class="ext-feat-icon">🛡️</div>
+          <div>
+            <h5>你的马甲号操作</h5>
+            <p>扩展用你当前浏览器已登录的LOFTER马甲号执行点赞，完全模拟人工操作。</p>
+          </div>
+        </div>
+        <div class="ext-feat">
+          <div class="ext-feat-icon">🌐</div>
+          <div>
+            <h5>IP归属你，风控无感</h5>
+            <p>点赞请求从你的IP发出，LOFTER看到的是你自己在操作，不会被风控误判。</p>
+          </div>
+        </div>
+        <div class="ext-feat">
+          <div class="ext-feat-icon">📜</div>
+          <div>
+            <h5>全链路溯源</h5>
+            <p>谁在什么时间、用哪个马甲号给谁点了赞，所有记录透明可查。<strong style="color:var(--accent2);">日志只显示马甲号，不暴露任何创作号信息。</strong></p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <!-- 任务面板截图占位 -->
+        <div class="ext-screenshot">
+          <div class="placeholder-icon">📋</div>
+          <div class="placeholder-text">任务面板截图</div>
+          <div class="placeholder-sub">展示当前任务、排队队列、点赞记录</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+          <div class="ext-screenshot" style="min-height:120px;">
+            <div class="placeholder-icon" style="font-size:24px;">📊</div>
+            <div class="placeholder-text">排队队列截图</div>
+          </div>
+          <div class="ext-screenshot" style="min-height:120px;">
+            <div class="placeholder-icon" style="font-size:24px;">📜</div>
+            <div class="placeholder-text">点赞溯源截图</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Flow -->
+<section id="flow">
+  <div class="section-label">上手指南</div>
+  <h2 class="section-title">四步开始互助</h2>
+  <p class="section-sub">从安装到获得第一个赞，只需四步。</p>
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="flow-step-num">1</div>
+      <div>
+        <h4>安装浏览器扩展</h4>
+        <p>为 Chrome / Edge / Firefox 安装赞链扩展，一键安装，不到10秒。</p>
+        <div class="tag">仅需一次</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">2</div>
+      <div>
+        <h4>登录LOFTER（用马甲号）</h4>
+        <p>正常打开 LOFTER，用你的马甲号 QQ 扫码登录。和平时一样，赞链不参与登录过程。</p>
+        <div class="tag">日常操作</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">3</div>
+      <div>
+        <h4>在赞链领取任务</h4>
+        <p>填写你的马甲号用户名、创作号用户名、创作号最新文章链接。点击"执行点赞"，扩展自动完成。</p>
+        <div class="tag">只需3秒</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">4</div>
+      <div>
+        <h4>等待回赞</h4>
+        <p>你的创作号自动进入公开队列，下一个人领到任务后就会来给你点赞。你可以在排队页面实时看到位置变化。</p>
+        <div class="tag">全透明</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Safety -->
+<section id="safety" style="max-width:100%;padding:80px 24px;">
+  <div style="max-width:1100px;margin:0 auto;text-align:center;">
+    <div class="section-label">安全与隐私</div>
+    <h2 class="section-title" style="margin-bottom:32px;">三大安全保障</h2>
+  </div>
+  <div class="safety-grid" style="max-width:1100px;margin:0 auto;">
+    <div class="safety-card">
+      <div class="safety-icon">🛡️</div>
+      <h4>双账号隔离</h4>
+      <p>点赞马甲和创作主号完全分离。创作号不登录、不授权、不操作，零风险。</p>
+    </div>
+    <div class="safety-card">
+      <div class="safety-icon">🌐</div>
+      <h4>IP归属用户</h4>
+      <p>点赞请求从你的浏览器发出，IP是你的。LOFTER看到的是正常用户操作，不会触发风控。</p>
+    </div>
+    <div class="safety-card">
+      <div class="safety-icon">📜</div>
+      <h4>全透明可查</h4>
+      <p>全链路日志记录：谁在什么时间用哪个马甲给谁点了赞，所有信息对用户公开。</p>
+    </div>
+  </div>
+</section>
+
+<!-- VIP -->
+<section id="vip" style="max-width:100%;padding:80px 0;">
+  <div class="vip-section">
+    <div style="text-align:center;">
+      <div class="section-label" style="color:var(--accent2);">✨ VIP 会员</div>
+      <h2 class="section-title" style="margin-bottom:8px;">插队免等，快人一步</h2>
+      <p style="font-size:15px;color:var(--text-dim);max-width:560px;margin:0 auto 12px;line-height:1.8;">
+        不想排队？VIP会员每天有<strong style="color:var(--accent2);">3次插队权</strong>，用完即止，回到普通队列先来后到。<br>
+        如果多个VIP同时插队，按<strong style="color:var(--accent2);">累计贡献赞数</strong>排序——你付出越多，排得越靠前。
+      </p>
+    </div>
+    <div class="vip-grid">
+      <div class="vip-card">
+        <div class="vip-card-icon">🆓</div>
+        <h4>免费用户</h4>
+        <div class="price">¥0 <span>/ 永久</span></div>
+        <ul>
+          <li>正常排队，先来后到</li>
+          <li>无限完成任务</li>
+          <li>全透明排队队列</li>
+          <li>点赞溯源可查</li>
+        </ul>
+        <div class="btn btn-outline btn-sm" style="cursor:default;opacity:0.6;">当前方案</div>
+      </div>
+      <div class="vip-card featured">
+        <div class="vip-badge">推荐</div>
+        <div class="vip-card-icon">⭐</div>
+        <h4>VIP 会员</h4>
+        <div class="price">¥9.9 <span>/ 月</span></div>
+        <ul>
+          <li><strong style="color:var(--accent2);">每日3次插队权</strong> — 用完正常排队</li>
+          <li>VIP之间按<strong>累计赞数</strong>排序</li>
+          <li>每日任务上限翻倍</li>
+          <li>专属VIP标识</li>
+        </ul>
+        <div class="btn btn-primary btn-sm" style="cursor:default;opacity:0.6;">即将上线</div>
+      </div>
+      <div class="vip-card">
+        <div class="vip-card-icon">💎</div>
+        <h4>年度会员</h4>
+        <div class="price">¥99 <span>/ 年</span></div>
+        <ul>
+          <li>包含VIP全部权益</li>
+          <li><strong style="color:var(--accent2);">每日5次插队权</strong></li>
+          <li><strong style="color:var(--accent2);">赞数权重×2</strong> — VIP排序中赞数翻倍</li>
+          <li>年度专属徽章</li>
+          <li>优先体验新功能</li>
+        </ul>
+        <div class="btn btn-outline btn-sm" style="cursor:default;opacity:0.6;">即将上线</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-label">常见问题</div>
+  <h2 class="section-title">FAQ</h2>
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFAQ(this)">我的创作号会被封吗？<span class="arrow">▼</span></button>
+      <div class="faq-a">不会。你的创作号只提供一个用户名给赞链，不登录、不授权、不参与任何操作。LOFTER完全不知道这个号参与了点赞互助，零风险。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFAQ(this)">我的马甲号被封了怎么办？<span class="arrow">▼</span></button>
+      <div class="faq-a">马甲号就是一个空号，被封了换一个就行。创作号完全不受影响，你已有的排队和赞数也不会丢。很多人专门为这个注册一个新号做马甲。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFAQ(this)">扩展需要什么权限？安全吗？<span class="arrow">▼</span></button>
+      <div class="faq-a">扩展只需要在当前打开的LOFTER页面上执行点赞操作，不能读取你的私信、不能改你的设置、不能删你的文章。源代码开源可审查。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFAQ(this)">我点完了对方不给我回赞怎么办？<span class="arrow">▼</span></button>
+      <div class="faq-a">赞链的设计是链式循环，不是1:1对等交换。你完成点赞后你的创作号进入公开队列，由下一个进入系统的人来给你点赞。不需要等特定某个人回赞。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFAQ(this)">排队要等多久？<span class="arrow">▼</span></button>
+      <div class="faq-a">取决于平台活跃用户数。用户越多排队越快。队列位置公开透明，你可以随时看到前面还有几个人，大约多久轮到你。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFAQ(this)">一个账号能点多少次？<span class="arrow">▼</span></button>
+      <div class="faq-a">不限次数。每次完成一个任务，你的创作号排一次队，然后可以再领一个新任务。多劳多得，你点得越多，你的创作号获得的赞也越多。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFAQ(this)">同一个文章能被同一个人重复点赞吗？<span class="arrow">▼</span></button>
+      <div class="faq-a">不会。系统会记录已点赞记录，一个LOFTER账号对同一篇文章只能点一次红心。任务分配时会自动去重，不会分配已点过的任务。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFAQ(this)">支持点蓝手（推荐）吗？<span class="arrow">▼</span></button>
+      <div class="faq-a">支持。目前以红心为主，后续会增加蓝手选项。你可以在任务中选择要点红心还是蓝手。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFAQ(this)">VIP插队是怎么排的？<span class="arrow">▼</span></button>
+      <div class="faq-a">VIP会员每天有<strong>3次插队权</strong>，用完即止，回到普通队列先来后到。多个VIP同时插队时，按<strong>累计给他人点赞的数量</strong>排序——你付出的赞越多，排得越靠前。年度会员每天5次插队权，赞数权重翻倍。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFAQ(this)">点赞记录会暴露我的创作号吗？<span class="arrow">▼</span></button>
+      <div class="faq-a">不会。所有公开的点赞记录<strong>只显示马甲号</strong>，例如"用户A(马甲) → 用户B(马甲)"。创作号信息只有你自己能看到，其他人无法从日志中获取任何人的创作号信息。</div>
+    </div>
+  </div>
+</section>
+
+<!-- Demo -->
+<section id="demo">
+  <div class="section-label">在线体验</div>
+  <h2 class="section-title">立即体验点赞流程</h2>
+  <p class="section-sub">下方是赞链演示站，无需真实账号即可体验完整功能：双账号登录、领取任务、执行点赞、排队队列、点赞溯源。</p>
+  <div class="demo-wrapper">
+    <iframe src="like-exchange.html" title="赞链演示站" loading="lazy"></iframe>
+  </div>
+</section>
+
+<!-- Download -->
+<section id="download">
+  <div class="section-label" style="text-align:center;">下载浏览器扩展</div>
+  <h2 class="section-title" style="text-align:center;">选择你的浏览器</h2>
+  <p class="section-sub" style="text-align:center;margin:0 auto 40px;">安装一次，永久使用。支持所有主流浏览器。</p>
+  <div class="download-grid">
+    <div class="dl-card">
+      <div class="dl-icon">🌐</div>
+      <h4>Google Chrome</h4>
+      <p>适用于 Chrome 最新版本</p>
+      <div class="dl-badge">即将上线 · 敬请期待</div>
+    </div>
+    <div class="dl-card">
+      <div class="dl-icon">🦊</div>
+      <h4>Mozilla Firefox</h4>
+      <p>适用于 Firefox 最新版本</p>
+      <div class="dl-badge">即将上线 · 敬请期待</div>
+    </div>
+    <div class="dl-card">
+      <div class="dl-icon">🧭</div>
+      <h4>Microsoft Edge</h4>
+      <p>适用于 Edge 最新版本（Chromium）</p>
+      <div class="dl-badge">即将上线 · 敬请期待</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>赞链 · LOFTER 点赞互助平台 · 马甲点赞，主号收赞，安全无忧</p>
+  <p style="margin-top:8px;font-size:11px;">本站不存储用户密码，不执行敏感操作，所有点赞操作由用户授权后通过浏览器执行</p>
+</footer>
+
+<script>
+function toggleFAQ(btn) {
+  btn.classList.toggle('open');
+  const answer = btn.nextElementSibling;
+  answer.classList.toggle('open');
+}
+</script>
+</body>
+</html>
