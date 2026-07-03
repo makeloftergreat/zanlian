@@ -4,829 +4,303 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>赞链 · LOFTER 点赞互助平台</title>
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root {
-  --bg:#0f0f0f; --surface:#1a1a1a; --surface2:#242424; --surface3:#2e2e2e;
-  --border:#333; --border-light:#444; --text:#e8e8e8; --text-dim:#888; --text-muted:#666;
-  --accent:#ff4d6a; --accent-glow:rgba(255,77,106,0.15);
-  --accent2:#ffb347; --accent2-dim:rgba(255,179,71,0.12);
-  --green:#4ade80; --blue:#60a5fa; --blue-dim:rgba(96,165,250,0.12);
-  --radius:12px; --radius-sm:8px; --radius-lg:20px;
+:root{--bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--surface3:#2e2e2e;--border:#333;--text:#e0e0e0;--text2:#999;--accent:#6c5ce7;--accent2:#a29bfe;--danger:#e74c3c;--success:#2ecc71;--warning:#f39c12}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans SC",sans-serif;line-height:1.6}
+[v-cloak]{display:none}
+.nav{position:fixed;top:0;left:0;right:0;height:60px;background:rgba(15,15,15,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);z-index:100;display:flex;align-items:center;padding:0 24px;justify-content:space-between}
+.nav-logo{font-size:20px;font-weight:700;cursor:pointer;color:var(--accent2)}
+.nav-logo span{color:var(--accent)}
+.nav-btns{display:flex;gap:12px;align-items:center}
+.nav-links{display:flex;gap:20px;list-style:none}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:14px;cursor:pointer;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.btn{padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.hero{text-align:center;padding:120px 24px 80px;max-width:800px;margin:0 auto}
+.hero h1{font-size:48px;margin-bottom:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:18px;color:var(--text2);margin-bottom:32px}
+.section{max-width:900px;margin:0 auto;padding:60px 24px}
+.section h2{font-size:32px;margin-bottom:24px;text-align:center}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.card h3{font-size:18px;margin-bottom:12px;color:var(--accent2)}
+.card p{color:var(--text2);font-size:15px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:24px}
+.step{background:var(--surface2);border-radius:8px;padding:20px;text-align:center}
+.step-num{font-size:24px;font-weight:700;color:var(--accent);margin-bottom:8px}
+.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin-bottom:8px}
+.faq-item h4{font-size:15px;margin-bottom:6px;color:var(--text)}
+.faq-item p{font-size:14px;color:var(--text2)}
+.footer{text-align:center;padding:40px 24px;color:var(--text2);font-size:13px;border-top:1px solid var(--border);margin-top:60px}
+.app-container{padding-top:80px;max-width:900px;margin:0 auto;padding-left:24px;padding-right:24px}
+.stats-row{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.stat-box{flex:1;min-width:120px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.stat-num{font-size:28px;font-weight:700;color:var(--accent2)}
+.stat-label{font-size:12px;color:var(--text2);margin-top:4px}
+.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.tab-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;font-size:14px;transition:all .2s}
+.tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.task-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px}
+.task-info{display:flex;flex-direction:column;gap:12px;margin:16px 0}
+.task-info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.task-info-label{color:var(--text2);font-size:14px}
+.task-info-value{font-weight:600}
+.task-steps{background:var(--surface2);border-radius:8px;padding:16px;margin:16px 0}
+.task-steps ol{padding-left:20px;color:var(--text2);font-size:14px}
+.task-steps li{margin-bottom:8px}
+.task-steps li strong{color:var(--text)}
+.link-btn{display:inline-block;color:var(--accent2);text-decoration:none;font-size:14px;padding:6px 12px;border:1px solid var(--border);border-radius:6px;transition:all .2s}
+.link-btn:hover{border-color:var(--accent)}
+.queue-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:8px}
+.queue-pos{font-size:20px;font-weight:700;color:var(--accent);min-width:32px;text-align:center}
+.queue-name{flex:1;font-size:15px}
+.queue-status{font-size:12px;padding:4px 8px;border-radius:4px}
+.status-waiting{background:rgba(243,156,18,.15);color:var(--warning)}
+.status-done{background:rgba(46,204,113,.15);color:var(--success)}
+.log-item{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:14px}
+.log-arrow{color:var(--accent)}
+.log-time{margin-left:auto;color:var(--text2);font-size:12px}
+.empty{text-align:center;padding:40px;color:var(--text2)}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:200}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:400px;width:90%}
+.modal h3{font-size:22px;margin-bottom:20px;text-align:center}
+.modal-tabs{display:flex;gap:8px;margin-bottom:20px}
+.modal-tab{flex:1;padding:8px;text-align:center;border-radius:8px;cursor:pointer;font-size:14px;border:1px solid var(--border);transition:all .2s}
+.modal-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px}
+.form-group input{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none}
+.form-group input:focus{border-color:var(--accent)}
+.form-error{color:var(--danger);font-size:13px;margin-bottom:12px;text-align:center}
+.form-success{color:var(--success);font-size:13px;margin-bottom:12px;text-align:center}
+.modal .btn{width:100%;padding:12px;font-size:16px}
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:300;animation:fadeIn .3s}
+.toast-inner{padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600}
+.toast-info{background:var(--accent);color:#fff}
+.toast-success{background:var(--success);color:#fff}
+.toast-error{background:var(--danger);color:#fff}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@media(max-width:640px){
+  .nav-links{display:none}
+  .hero h1{font-size:32px}
+  .hero p{font-size:15px}
+  .stats-row{flex-direction:column}
+  .section{padding:40px 16px}
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-html { scroll-behavior:smooth; }
-body {
-  font-family: -apple-system, 'Noto Sans SC', 'PingFang SC', sans-serif;
-  background:var(--bg); color:var(--text);
-  min-height:100vh; line-height:1.6; overflow-x:hidden;
-}
-a { color:inherit; text-decoration:none; }
-
-/* Nav */
-nav {
-  position:sticky; top:0; z-index:30;
-  background:rgba(15,15,15,0.85); backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border); padding:0 24px;
-}
-.nav-inner {
-  max-width:1100px; margin:0 auto; display:flex;
-  align-items:center; justify-content:space-between; height:56px;
-}
-.nav-logo { display:flex; align-items:center; gap:8px; font-weight:700; font-size:17px; cursor:pointer; }
-.nav-logo span { color:var(--accent); }
-.nav-links { display:flex; gap:20px; list-style:none; align-items:center; }
-.nav-links a { color:var(--text-dim); text-decoration:none; font-size:13px; transition:color 0.2s; white-space:nowrap; cursor:pointer; }
-.nav-links a:hover { color:var(--text); }
-.nav-cta {
-  padding:6px 18px; border-radius:100px; background:var(--accent);
-  color:#fff !important; font-weight:600; font-size:13px;
-}
-.nav-user {
-  display:flex; align-items:center; gap:10px; font-size:13px;
-}
-.nav-avatar {
-  width:30px; height:30px; border-radius:50%; background:var(--surface3);
-  display:flex; align-items:center; justify-content:center;
-  font-size:14px; color:var(--accent); border:1px solid var(--border);
-}
-.nav-logout {
-  font-size:12px; color:var(--text-muted); cursor:pointer;
-  padding:4px 10px; border-radius:100px; border:1px solid var(--border);
-  background:transparent; font-family:inherit; transition:all 0.2s;
-}
-.nav-logout:hover { border-color:var(--accent); color:var(--accent); }
-@media(max-width:700px) {
-  .nav-links.nav-desktop { display:none; }
-}
-
-/* Sections */
-section { padding:80px 24px; max-width:1100px; margin:0 auto; }
-.section-label {
-  display:inline-block; font-size:12px; font-weight:700; letter-spacing:3px;
-  text-transform:uppercase; color:var(--accent); margin-bottom:12px;
-}
-.section-title { font-size:32px; font-weight:700; margin-bottom:16px; letter-spacing:-0.5px; }
-.section-sub { font-size:16px; color:var(--text-dim); max-width:600px; line-height:1.8; margin-bottom:40px; }
-
-/* Hero */
-.hero { padding:100px 24px 80px; text-align:center; max-width:1100px; margin:0 auto; }
-.hero-badge {
-  display:inline-flex; align-items:center; gap:6px;
-  padding:6px 16px; border-radius:100px;
-  background:var(--accent-glow); color:var(--accent); font-size:13px; font-weight:500;
-  margin-bottom:24px;
-}
-.hero h1 { font-size:48px; font-weight:800; letter-spacing:-1px; margin-bottom:20px; line-height:1.2; }
-.hero h1 span { background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-.hero p { font-size:18px; color:var(--text-dim); max-width:560px; margin:0 auto 36px; line-height:1.8; }
-.hero-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-.hero-stats {
-  display:flex; gap:48px; justify-content:center; margin-top:56px;
-  padding:32px; background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius-lg); max-width:600px; margin-left:auto; margin-right:auto;
-}
-.hero-stat { text-align:center; }
-.hero-stat-num { font-size:28px; font-weight:700; font-family:serif; }
-.hero-stat-num.accent { color:var(--accent); }
-.hero-stat-num.green { color:var(--green); }
-.hero-stat-num.gold { color:var(--accent2); }
-.hero-stat-label { font-size:13px; color:var(--text-muted); margin-top:4px; }
-
-/* Buttons */
-.btn {
-  display:inline-flex; align-items:center; gap:8px;
-  padding:12px 28px; border-radius:var(--radius);
-  font-size:14px; font-weight:600; font-family:inherit;
-  border:none; cursor:pointer; transition:all 0.25s ease; text-decoration:none;
-}
-.btn:active { transform:scale(0.97); }
-.btn-primary {
-  background:linear-gradient(135deg,var(--accent),#e63e5a); color:#fff;
-  box-shadow:0 4px 20px var(--accent-glow);
-}
-.btn-primary:hover { box-shadow:0 6px 30px rgba(255,77,106,0.3); transform:translateY(-1px); }
-.btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
-.btn-outline { background:transparent; color:var(--text); border:1px solid var(--border-light); }
-.btn-outline:hover { border-color:var(--text-dim); background:var(--surface2); }
-.btn-outline:disabled { opacity:0.5; cursor:not-allowed; }
-.btn-sm { padding:8px 18px; font-size:13px; }
-.btn-lg { padding:14px 36px; font-size:15px; }
-
-/* Mechanism */
-.mech-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
-.mech-card {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius); padding:28px 20px; text-align:center;
-}
-.mech-card-num {
-  width:36px; height:36px; border-radius:50%; background:var(--surface2);
-  display:flex; align-items:center; justify-content:center;
-  margin:0 auto 16px; font-size:14px; font-weight:700; color:var(--accent);
-}
-.mech-card h4 { font-size:14px; font-weight:600; margin-bottom:8px; }
-.mech-card p { font-size:13px; color:var(--text-dim); line-height:1.7; }
-.mech-arrow-h { display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--text-muted); }
-
-/* Dual Account */
-.dual-section {
-  background:linear-gradient(135deg,var(--surface),var(--surface2));
-  border:1px solid var(--border); border-radius:var(--radius-lg);
-  padding:48px 40px; margin:0 24px;
-}
-.dual-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:32px; }
-.dual-card {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius); padding:28px; position:relative;
-}
-.dual-card .tag {
-  display:inline-block; font-size:11px; font-weight:600; letter-spacing:1px;
-  padding:3px 10px; border-radius:100px; margin-bottom:12px;
-}
-.dual-card .tag.a { background:var(--blue-dim); color:var(--blue); }
-.dual-card .tag.b { background:var(--accent2-dim); color:var(--accent2); }
-.dual-card h4 { font-size:16px; margin-bottom:8px; }
-.dual-card p { font-size:13px; color:var(--text-dim); line-height:1.8; }
-.dual-card ul { list-style:none; padding:0; margin-top:12px; }
-.dual-card li { font-size:13px; color:var(--text-dim); padding:4px 0 4px 16px; position:relative; }
-.dual-card li::before { content:'✓'; position:absolute; left:0; color:var(--green); font-weight:700; }
-
-/* Flow */
-.flow-steps { display:flex; flex-direction:column; gap:16px; max-width:600px; }
-.flow-step {
-  display:flex; gap:16px; align-items:flex-start;
-  padding:20px; background:var(--surface); border-radius:var(--radius);
-  border:1px solid var(--border); position:relative;
-}
-.flow-step-num {
-  width:32px; height:32px; border-radius:50%;
-  background:var(--accent); color:#fff; display:flex;
-  align-items:center; justify-content:center;
-  font-size:13px; font-weight:700; flex-shrink:0;
-}
-.flow-step h4 { font-size:14px; font-weight:600; margin-bottom:4px; }
-.flow-step p { font-size:13px; color:var(--text-dim); }
-.flow-step .tag {
-  display:inline-block; font-size:11px; padding:2px 8px; border-radius:100px;
-  background:var(--blue-dim); color:var(--blue); margin-top:6px;
-}
-
-/* Safety */
-.safety-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
-.safety-card {
-  background:var(--surface2); border:1px solid var(--border);
-  border-radius:var(--radius); padding:28px; text-align:center;
-}
-.safety-icon { font-size:32px; margin-bottom:12px; }
-.safety-card h4 { font-size:15px; font-weight:600; margin-bottom:8px; }
-.safety-card p { font-size:13px; color:var(--text-dim); }
-
-/* FAQ */
-.faq-list { max-width:700px; }
-.faq-item {
-  border-bottom:1px solid var(--border); padding:0; overflow:hidden;
-}
-.faq-q {
-  padding:18px 0; display:flex; justify-content:space-between;
-  align-items:center; cursor:pointer; font-size:15px; font-weight:500;
-  background:none; border:none; color:var(--text); width:100%;
-  text-align:left; font-family:inherit;
-}
-.faq-q .arrow { font-size:12px; transition:transform 0.3s; color:var(--text-muted); }
-.faq-q.open .arrow { transform:rotate(180deg); }
-.faq-a {
-  max-height:0; overflow:hidden; transition:max-height 0.3s ease, padding 0.3s;
-  font-size:14px; color:var(--text-dim); line-height:1.8;
-}
-.faq-a.open { max-height:300px; padding-bottom:18px; }
-
-/* Footer */
-footer {
-  text-align:center; padding:40px 24px; border-top:1px solid var(--border);
-  color:var(--text-muted); font-size:13px;
-}
-
-/* ====== Dashboard Styles ====== */
-.dashboard {
-  max-width:1100px; margin:0 auto; padding:32px 24px 80px;
-}
-.dashboard h2 { font-size:24px; font-weight:700; margin-bottom:4px; }
-.dashboard .sub { font-size:14px; color:var(--text-dim); margin-bottom:32px; }
-
-/* Tabs */
-.tabs {
-  display:flex; gap:4px; margin-bottom:28px;
-  background:var(--surface); border-radius:var(--radius);
-  padding:4px; border:1px solid var(--border);
-  flex-wrap:wrap;
-}
-.tab {
-  padding:10px 20px; border-radius:var(--radius-sm);
-  font-size:13px; font-weight:500; font-family:inherit;
-  border:none; background:transparent; color:var(--text-dim);
-  cursor:pointer; transition:all 0.25s;
-  flex:1; text-align:center; min-width:80px;
-}
-.tab.active { background:var(--accent); color:#fff; box-shadow:0 2px 12px var(--accent-glow); }
-.tab:hover:not(.active) { color:var(--text); }
-
-/* Card */
-.card {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius-lg); padding:28px;
-  margin-bottom:20px;
-}
-.card-title { font-size:16px; font-weight:600; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
-.card-sub { font-size:13px; color:var(--text-dim); margin-bottom:20px; }
-
-/* Current Task */
-.task-box {
-  background:var(--surface2); border:1px solid var(--border-light);
-  border-radius:var(--radius); padding:24px;
-  margin:20px 0;
-}
-.task-label { font-size:12px; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:12px; }
-.task-item { margin-bottom:16px; }
-.task-item:last-child { margin-bottom:0; }
-.task-key { font-size:12px; color:var(--text-muted); }
-.task-val { font-size:15px; font-weight:500; margin-top:2px; }
-.task-step { display:flex; gap:16px; align-items:flex-start; margin:20px 0; }
-.task-step-num {
-  width:28px; height:28px; border-radius:50%;
-  background:var(--accent-glow); color:var(--accent);
-  display:flex; align-items:center; justify-content:center;
-  font-size:12px; font-weight:700; flex-shrink:0;
-}
-.task-step p { font-size:13px; color:var(--text-dim); line-height:1.7; }
-.task-step strong { color:var(--text); }
-
-.article-link {
-  display:inline-flex; align-items:center; gap:6px;
-  padding:8px 16px; background:var(--blue-dim); color:var(--blue);
-  border-radius:var(--radius-sm); font-size:13px; margin-top:8px;
-  transition:all 0.2s;
-}
-.article-link:hover { background:rgba(96,165,250,0.2); }
-
-/* Queue */
-.queue-list { display:flex; flex-direction:column; gap:8px; margin-top:16px; }
-.queue-item {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 18px; background:var(--surface2);
-  border:1px solid var(--border); border-radius:var(--radius-sm);
-  transition:all 0.3s;
-}
-.queue-item:hover { border-color:var(--border-light); }
-.queue-item .left { display:flex; align-items:center; gap:12px; }
-.queue-pos {
-  width:28px; height:28px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-  font-size:12px; font-weight:700;
-  background:var(--surface3); color:var(--text-dim);
-}
-.queue-pos.waiting { background:var(--accent2-dim); color:var(--accent2); }
-.queue-pos.done { background:rgba(74,222,128,0.12); color:var(--green); }
-.queue-name { font-size:14px; font-weight:500; }
-.queue-name.you { color:var(--accent2); }
-.queue-status {
-  font-size:11px; padding:3px 10px; border-radius:100px;
-  font-weight:500; text-transform:uppercase; letter-spacing:0.5px;
-}
-.queue-status.waiting { background:rgba(255,179,71,0.1); color:var(--accent2); }
-.queue-status.done { background:rgba(74,222,128,0.1); color:var(--green); }
-.queue-status.processing { background:var(--blue-dim); color:var(--blue); }
-
-/* Logs */
-.log-list { display:flex; flex-direction:column; gap:6px; margin-top:16px; }
-.log-item {
-  display:flex; align-items:center; gap:10px;
-  padding:12px 16px; background:var(--surface2);
-  border:1px solid var(--border); border-radius:var(--radius-sm);
-  font-size:13px; color:var(--text-dim);
-}
-.log-arrow { color:var(--text-muted); font-size:11px; flex-shrink:0; }
-.log-name { color:var(--accent); font-weight:500; }
-.log-time { margin-left:auto; font-size:11px; color:var(--text-muted); flex-shrink:0; }
-
-/* Stats bar */
-.stats-bar {
-  display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px;
-}
-.stat-card {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius); padding:20px; text-align:center;
-}
-.stat-card-num { font-size:24px; font-weight:700; }
-.stat-card-num.accent { color:var(--accent); }
-.stat-card-num.gold { color:var(--accent2); }
-.stat-card-num.green { color:var(--green); }
-.stat-card-label { font-size:12px; color:var(--text-muted); margin-top:4px; }
-
-/* Auth Modal */
-.modal-overlay {
-  position:fixed; inset:0; z-index:100;
-  background:rgba(0,0,0,0.7); backdrop-filter:blur(4px);
-  display:flex; align-items:center; justify-content:center;
-  animation:fadeIn 0.25s ease;
-}
-@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-@keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-.modal {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius-lg); padding:36px;
-  width:100%; max-width:420px; margin:0 16px;
-  animation:slideUp 0.3s ease;
-}
-.modal h3 { font-size:22px; font-weight:700; margin-bottom:4px; }
-.modal .sub { font-size:13px; color:var(--text-dim); margin-bottom:24px; }
-.modal .close {
-  float:right; background:none; border:none; color:var(--text-muted);
-  font-size:20px; cursor:pointer; padding:4px;
-  transition:color 0.2s;
-}
-.modal .close:hover { color:var(--text); }
-.form-group { margin-bottom:16px; }
-.form-group label { display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; font-weight:500; letter-spacing:0.5px; }
-.form-group input {
-  width:100%; padding:12px 14px; border-radius:var(--radius-sm);
-  border:1px solid var(--border); background:var(--surface2);
-  color:var(--text); font-size:14px; font-family:inherit;
-  transition:border 0.2s;
-  outline:none;
-}
-.form-group input:focus { border-color:var(--accent); }
-.form-group .hint { font-size:11px; color:var(--text-muted); margin-top:4px; }
-.form-actions { display:flex; gap:10px; margin-top:20px; }
-.form-actions .btn { flex:1; justify-content:center; }
-.form-footer { text-align:center; margin-top:16px; font-size:13px; color:var(--text-dim); }
-.form-footer a { color:var(--accent); cursor:pointer; }
-.form-error {
-  padding:10px 14px; background:rgba(255,77,106,0.1);
-  border:1px solid rgba(255,77,106,0.3); border-radius:var(--radius-sm);
-  color:var(--accent); font-size:13px; margin-bottom:16px;
-}
-.form-success {
-  padding:10px 14px; background:rgba(74,222,128,0.1);
-  border:1px solid rgba(74,222,128,0.3); border-radius:var(--radius-sm);
-  color:var(--green); font-size:13px; margin-bottom:16px;
-}
-
-/* Toast */
-.toast {
-  position:fixed; bottom:32px; left:50%; transform:translateX(-50%);
-  z-index:200; pointer-events:none;
-}
-.toast-inner {
-  display:inline-flex; align-items:center; gap:10px;
-  padding:14px 24px; border-radius:var(--radius);
-  font-size:14px; font-weight:500;
-  animation:slideUp 0.3s ease;
-  pointer-events:auto;
-  box-shadow:0 8px 32px rgba(0,0,0,0.4);
-}
-.toast.error { background:#2a1515; color:var(--accent); border:1px solid rgba(255,77,106,0.3); }
-.toast.success { background:#152a15; color:var(--green); border:1px solid rgba(74,222,128,0.3); }
-.toast.info { background:#151f2a; color:var(--blue); border:1px solid rgba(96,165,250,0.3); }
-
-/* Empty state */
-.empty-state {
-  text-align:center; padding:40px 20px;
-}
-.empty-icon { font-size:40px; margin-bottom:12px; opacity:0.4; }
-.empty-text { font-size:14px; color:var(--text-muted); }
-
-/* Responsive */
-@media(max-width:900px) {
-  .mech-grid { grid-template-columns:1fr 1fr; }
-  .mech-arrow-h { display:none; }
-  .dual-grid { grid-template-columns:1fr; }
-  .safety-grid { grid-template-columns:1fr; }
-  .stats-bar { grid-template-columns:repeat(3,1fr); gap:8px; }
-  .stat-card { padding:16px 8px; }
-  .stat-card-num { font-size:20px; }
-}
-@media(max-width:700px) {
-  .hero h1 { font-size:32px; }
-  .hero-stats { gap:24px; flex-wrap:wrap; }
-  .section-title { font-size:24px; }
-  section { padding:48px 16px; }
-  .dual-section { padding:28px 20px; margin:0 12px; }
-  .dashboard { padding:20px 12px 60px; }
-  .card { padding:18px; }
-  .queue-item { flex-direction:column; align-items:flex-start; gap:8px; }
-  .queue-item .left { width:100%; }
-  .log-item { font-size:12px; flex-wrap:wrap; }
-  .log-time { width:100%; margin-left:0; margin-top:4px; }
-  .tabs .tab { font-size:12px; padding:8px 12px; }
-  .modal { padding:24px; }
-  .stats-bar { grid-template-columns:1fr; }
-}
-
-/* Transition */
-.fade-enter-active, .fade-leave-active { transition:opacity 0.3s ease, transform 0.3s ease; }
-.fade-enter-from, .fade-leave-to { opacity:0; transform:translateY(10px); }
 </style>
 </head>
 <body>
-<div id="app">
-  <!-- Toast Notification -->
+<div id="app" v-cloak>
+  <!-- Toast -->
   <div class="toast" v-if="toast.show">
-    <div class="toast-inner" :class="toast.type">
-      {{ toast.msg }}
-    </div>
+    <div class="toast-inner" :class="'toast-' + toast.type">{{ toast.msg }}</div>
   </div>
 
   <!-- Nav -->
-  <nav>
-    <div class="nav-inner">
-      <div class="nav-logo" @click="goHome">♥ 赞<span>链</span></div>
-      <ul class="nav-links nav-desktop">
-        <template v-if="!user">
+  <nav class="nav">
+    <div class="nav-logo" @click="showLanding = !user">♥ 赞<span>链</span></div>
+    <div class="nav-btns">
+      <template v-if="!user">
+        <ul class="nav-links">
           <li><a @click="scrollTo('mechanism')">机制</a></li>
           <li><a @click="scrollTo('dual')">双账号</a></li>
           <li><a @click="scrollTo('flow')">上手指南</a></li>
           <li><a @click="scrollTo('safety')">安全</a></li>
           <li><a @click="scrollTo('faq')">FAQ</a></li>
-          <li><a class="nav-cta" @click="showAuth=true">开始使用</a></li>
-        </template>
-        <template v-else>
-          <li><a @click="currentTab='task'" :style="{color:currentTab==='task'? 'var(--accent)':''}">任务</a></li>
-          <li><a @click="currentTab='queue'" :style="{color:currentTab==='queue'? 'var(--accent)':''}">排队</a></li>
-          <li><a @click="currentTab='logs'" :style="{color:currentTab==='logs'? 'var(--accent)':''}">溯源</a></li>
-          <li><a @click="currentTab='home'">官网</a></li>
-          <div class="nav-user">
-            <div class="nav-avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
-            <span style="color:var(--text-dim);font-size:13px;">{{ user.username }}</span>
-            <button class="nav-logout" @click="logout">退出</button>
-          </div>
-        </template>
-      </ul>
+        </ul>
+        <button class="btn btn-primary" @click="showAuth = true">开始使用</button>
+      </template>
+      <template v-else>
+        <button class="btn btn-outline" @click="showLanding = true">官网</button>
+        <button class="btn btn-outline" @click="showLanding = false">仪表盘</button>
+        <button class="btn btn-primary" @click="logout">退出</button>
+      </template>
     </div>
   </nav>
 
-  <!-- ====== LANDING PAGE (home tab or logged out) ====== -->
-  <template v-if="!user || currentTab === 'home'">
+  <!-- Landing Page -->
+  <div v-if="showLanding || !user">
     <!-- Hero -->
-    <div class="hero" id="hero">
-      <div class="hero-badge">🛡️ 双账号隔离 · 创作号零风险</div>
-      <h1>用马甲点赞，<span>主号收赞</span></h1>
-      <p>你的点赞号只负责付出，创作号安全收赞。<br>两号分离，你的心血账号永不参与任何操作。</p>
-      <div class="hero-actions">
-        <a class="btn btn-primary btn-lg" @click="showAuth=true">开始使用 →</a>
-        <a class="btn btn-outline btn-lg" @click="scrollTo('faq')">了解详情</a>
+    <div class="hero">
+      <h1>赞链</h1>
+      <p>LOFTER 点赞互助平台 — 先付后得，公平排队，双账号隔离保护隐私</p>
+      <button class="btn btn-primary" style="font-size:16px;padding:12px 32px" @click="showAuth = true">开始使用</button>
+    </div>
+
+    <!-- 机制 -->
+    <div class="section" id="mechanism">
+      <h2>核心机制</h2>
+      <div class="card">
+        <h3>先付后得</h3>
+        <p>你必须先给他人点赞，自己的创作号才能进入排队队列。付出是获得的前提。</p>
       </div>
-      <div class="hero-stats">
-        <div class="hero-stat"><div class="hero-stat-num accent">1,200+</div><div class="hero-stat-label">累计点赞</div></div>
-        <div class="hero-stat"><div class="hero-stat-num green">98%</div><div class="hero-stat-label">回赞完成率</div></div>
-        <div class="hero-stat"><div class="hero-stat-num">0</div><div class="hero-stat-label">创作号风险</div></div>
+      <div class="card">
+        <h3>先来后到</h3>
+        <p>排队按加入顺序，位置透明可查。排在前面的人先获得回赞。</p>
+      </div>
+      <div class="card">
+        <h3>溯源日志</h3>
+        <p>每一次点赞都有记录，格式为"马甲A → 马甲B"，只显示马甲号，不暴露创作号。</p>
       </div>
     </div>
 
-    <!-- Mechanism -->
-    <section id="mechanism">
-      <div class="section-label">核心机制</div>
-      <h2 class="section-title">先付出，后收获</h2>
-      <p class="section-sub">你为别人点一个赞，你的创作号就能进排队队列，等一个人来回赞。多劳多得，公平透明。</p>
-      <div class="mech-grid">
-        <div class="mech-card">
-          <div class="mech-card-num">1</div>
-          <h4>双账号登录</h4>
-          <p>用马甲号A登录，填写创作号B的用户名。B不参与任何操作。</p>
-        </div>
-        <div class="mech-arrow-h">→</div>
-        <div class="mech-card">
-          <div class="mech-card-num">2</div>
-          <h4>领取任务</h4>
-          <p>系统分配一个未点过的用户，去给 ta 的创作号文章点红心。</p>
-        </div>
-        <div class="mech-arrow-h">→</div>
-        <div class="mech-card">
-          <div class="mech-card-num">3</div>
-          <h4>执行点赞</h4>
-          <p>用你的马甲号完成点赞，IP归属你，安全无痕。</p>
-        </div>
-        <div class="mech-arrow-h">→</div>
-        <div class="mech-card">
-          <div class="mech-card-num">4</div>
-          <h4>排队等待</h4>
-          <p>你的创作号自动进入公开排队队列，位置透明可见。</p>
-        </div>
-        <div class="mech-arrow-h">→</div>
-        <div class="mech-card">
-          <div class="mech-card-num">5</div>
-          <h4>获得回赞</h4>
-          <p>下一个人完成点赞 → 你的创作号收到 1 赞 ✅ 循环继续。</p>
-        </div>
+    <!-- 双账号 -->
+    <div class="section" id="dual">
+      <h2>双账号隔离</h2>
+      <div class="card">
+        <h3>马甲号 vs 创作号</h3>
+        <p><strong>马甲号</strong>：用于给他人点赞，其他用户可以看到你的马甲号。</p>
+        <p><strong>创作号</strong>：用于接收点赞，仅你自己可见。其他用户看不到你的创作号。</p>
+        <p>两者完全隔离，保护你的创作号隐私。</p>
       </div>
-    </section>
+    </div>
 
-    <!-- Dual Account -->
-    <section id="dual" style="max-width:100%;padding:80px 0;">
-      <div class="dual-section">
-        <div style="text-align:center;">
-          <div class="section-label">双账号隔离</div>
-          <h2 class="section-title" style="margin-bottom:8px;">点赞号和创作号，完全分离</h2>
-          <p style="font-size:15px;color:var(--text-dim);max-width:560px;margin:0 auto 12px;line-height:1.8;">
-            这是赞链最核心的安全设计。你用一个风险极低的马甲号去点赞，别人回赞到你的创作号。<br>
-            <strong style="color:var(--accent);">创作号永不参与任何点赞操作</strong>，即使马甲被封也丝毫无损。
-          </p>
-        </div>
-        <div class="dual-grid">
-          <div class="dual-card">
-            <div class="tag a">账号 A · 点赞马甲</div>
-            <h4>用于给别人点赞</h4>
-            <p>一个不写文、不重要的空号，专门用于登录和点赞操作。即使这个号出现问题，你也不会有任何损失。</p>
-            <ul>
-              <li>因点赞被封也无所谓</li>
-              <li>不暴露你的创作身份</li>
-              <li>随时可以换一个马甲</li>
-            </ul>
-          </div>
-          <div class="dual-card">
-            <div class="tag b">账号 B · 创作主号</div>
-            <h4>只用于接收回赞</h4>
-            <p>你的心血创作号，只提供一个用户名给系统。它不登录、不授权、不参与任何操作——只等别人来点赞。</p>
-            <ul>
-              <li>零操作、零风险</li>
-              <li>不授权、不登录、不暴露密码</li>
-              <li>马甲出问题完全不影响</li>
-            </ul>
-          </div>
-        </div>
+    <!-- 上手指南 -->
+    <div class="section" id="flow">
+      <h2>上手指南</h2>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><h3>注册</h3><p>填写马甲号、创作号、邮箱和密码</p></div>
+        <div class="step"><div class="step-num">2</div><h3>领任务</h3><p>系统自动分配一个待点赞的文章</p></div>
+        <div class="step"><div class="step-num">3</div><h3>去点赞</h3><p>用马甲号打开文章，点红心</p></div>
+        <div class="step"><div class="step-num">4</div><h3>确认</h3><p>回到赞链点击"确认完成"</p></div>
+        <div class="step"><div class="step-num">5</div><h3>排队</h3><p>你的创作号自动排入队列</p></div>
+        <div class="step"><div class="step-num">6</div><h3>收赞</h3><p>轮到你时，他人会给你点赞</p></div>
       </div>
-    </section>
+    </div>
 
-    <!-- Flow -->
-    <section id="flow">
-      <div class="section-label">上手指南</div>
-      <h2 class="section-title">三步开始互助</h2>
-      <p class="section-sub">从注册到获得第一个赞，简单直接。</p>
-      <div class="flow-steps">
-        <div class="flow-step">
-          <div class="flow-step-num">1</div>
-          <div>
-            <h4>注册账号</h4>
-            <p>填写你的马甲号用户名、创作号用户名、邮箱和密码，注册赞链账号。</p>
-            <div class="tag">仅需一次</div>
-          </div>
-        </div>
-        <div class="flow-step">
-          <div class="flow-step-num">2</div>
-          <div>
-            <h4>领取任务并点赞</h4>
-            <p>登录后，系统自动分配任务。复制对方文章链接，用你的马甲号去点赞，然后回来点击"完成点赞"。</p>
-            <div class="tag">几秒钟</div>
-          </div>
-        </div>
-        <div class="flow-step">
-          <div class="flow-step-num">3</div>
-          <div>
-            <h4>等待回赞</h4>
-            <p>你的创作号自动进入公开队列，下一个人领到任务后就会来给你点赞。实时查看排队位置。</p>
-            <div class="tag">全透明</div>
-          </div>
-        </div>
+    <!-- 安全 -->
+    <div class="section" id="safety">
+      <h2>安全保障</h2>
+      <div class="card">
+        <h3>每日上限</h3>
+        <p>每天最多点赞 20 次，防止滥用和异常行为。</p>
       </div>
-    </section>
-
-    <!-- Safety -->
-    <section id="safety" style="max-width:100%;padding:80px 24px;">
-      <div style="max-width:1100px;margin:0 auto;text-align:center;">
-        <div class="section-label">安全与隐私</div>
-        <h2 class="section-title" style="margin-bottom:32px;">三大安全保障</h2>
+      <div class="card">
+        <h3>隐私保护</h3>
+        <p>创作号信息仅自己可见，溯源日志中不出现任何创作号。</p>
       </div>
-      <div class="safety-grid" style="max-width:1100px;margin:0 auto;">
-        <div class="safety-card">
-          <div class="safety-icon">🛡️</div>
-          <h4>双账号隔离</h4>
-          <p>点赞马甲和创作主号完全分离。创作号不登录、不授权、不操作，零风险。</p>
-        </div>
-        <div class="safety-card">
-          <div class="safety-icon">🌐</div>
-          <h4>IP归属用户</h4>
-          <p>点赞请求从你的浏览器发出，IP是你的。LOFTER看到的是正常用户操作，不会触发风控。</p>
-        </div>
-        <div class="safety-card">
-          <div class="safety-icon">📜</div>
-          <h4>全透明可查</h4>
-          <p>全链路日志记录：谁在什么时间用哪个马甲给谁点了赞，所有信息对用户公开。</p>
-        </div>
-      </div>
-    </section>
+    </div>
 
     <!-- FAQ -->
-    <section id="faq">
-      <div class="section-label">常见问题</div>
-      <h2 class="section-title">FAQ</h2>
-      <div class="faq-list">
-        <div v-for="(faq, i) in faqs" :key="i" class="faq-item">
-          <button class="faq-q" :class="{open:faq.open}" @click="faq.open=!faq.open">{{ faq.q }}<span class="arrow">▼</span></button>
-          <div class="faq-a" :class="{open:faq.open}">{{ faq.a }}</div>
-        </div>
-      </div>
-    </section>
+    <div class="section" id="faq">
+      <h2>常见问题</h2>
+      <div class="faq-item"><h4>赞链会知道我的密码吗？</h4><p>不会。密码由 Supabase Auth 加密存储，赞链无法看到你的明文密码。</p></div>
+      <div class="faq-item"><h4>可以只收赞不点赞吗？</h4><p>不可以。必须先点赞，创作号才能进入排队队列。</p></div>
+      <div class="faq-item"><h4>每天能点多少次？</h4><p>每天最多 20 次，第二天自动重置。</p></div>
+      <div class="faq-item"><h4>排到第一位就一定能收到赞吗？</h4><p>当有新用户来点赞时，系统会优先把任务分配给排队第一位的人。</p></div>
+    </div>
 
-    <footer>
-      <p>赞链 · LOFTER 点赞互助平台 · 马甲点赞，主号收赞，安全无忧</p>
-      <p style="margin-top:8px;font-size:11px;">本站不存储密码，所有点赞操作由用户自主完成</p>
-    </footer>
-  </template>
+    <div class="footer">
+      <p>赞链 ZanLian · LOFTER 点赞互助平台 · <a href="https://github.com/makeloftergreat/zanlian" style="color:var(--accent2)">GitHub</a></p>
+    </div>
+  </div>
 
-  <!-- ====== DASHBOARD (logged in) ====== -->
-  <div class="dashboard" v-if="user && currentTab !== 'home'">
+  <!-- Dashboard -->
+  <div v-if="user && !showLanding" class="app-container">
     <!-- Stats -->
-    <div class="stats-bar">
-      <div class="stat-card">
-        <div class="stat-card-num gold">{{ userStats.given }}</div>
-        <div class="stat-card-label">已点赞</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-num green">{{ userStats.received }}</div>
-        <div class="stat-card-label">获得赞</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-num accent">{{ userStats.today_given }}<span style="font-size:12px;color:var(--text-muted);">/20</span></div>
-        <div class="stat-card-label">今日点赞</div>
-      </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num">{{ userStats.given }}</div><div class="stat-label">已点赞</div></div>
+      <div class="stat-box"><div class="stat-num">{{ userStats.received }}</div><div class="stat-label">获得赞</div></div>
+      <div class="stat-box"><div class="stat-num">{{ userStats.today_given }}/20</div><div class="stat-label">今日点赞</div></div>
     </div>
 
     <!-- Tabs -->
     <div class="tabs">
-      <button class="tab" :class="{active:currentTab==='task'}" @click="currentTab='task'">📋 当前任务</button>
-      <button class="tab" :class="{active:currentTab==='queue'}" @click="currentTab='queue'">📊 排队队列</button>
-      <button class="tab" :class="{active:currentTab==='logs'}" @click="currentTab='logs'">📜 溯源日志</button>
+      <button class="tab-btn" :class="{active: currentTab==='task'}" @click="currentTab='task'">📋 当前任务</button>
+      <button class="tab-btn" :class="{active: currentTab==='queue'}" @click="currentTab='queue'">📊 排队队列</button>
+      <button class="tab-btn" :class="{active: currentTab==='log'}" @click="currentTab='log'">📜 溯源日志</button>
     </div>
 
     <!-- Task Tab -->
-    <div v-if="currentTab==='task'" class="fade-enter-active" style="animation:slideUp 0.3s ease;">
-      <div class="card">
-        <div class="card-title">📋 当前任务</div>
-        <div v-if="currentTask" class="task-box">
-          <div class="task-label">去给对方创作号的这篇文章点赞</div>
-          <div class="task-item">
-            <div class="task-key">对方马甲</div>
-            <div class="task-val">{{ currentTask.giver_username }}</div>
-          </div>
-          <div class="task-item">
-            <div class="task-key">对方创作号</div>
-            <div class="task-val">{{ currentTask.receiver_main }}</div>
-          </div>
-          <div class="task-item">
-            <div class="task-key">文章链接</div>
-            <a :href="currentTask.article_url" target="_blank" class="article-link">🔗 打开文章</a>
-          </div>
-          <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px;">
-            <div class="task-step">
-              <div class="task-step-num">1</div>
-              <p><strong>打开链接</strong>，用你的马甲号 LOFTER 账号登录并点赞</p>
-            </div>
-            <div class="task-step">
-              <div class="task-step-num">2</div>
-              <p><strong>回到这里</strong>，点击下方按钮确认已完成点赞</p>
-            </div>
-          </div>
-          <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:8px;"
-            @click="confirmLike"
-            :disabled="liking || userStats.today_given >= 20"
-          >
-            <span v-if="liking">⏳ 处理中...</span>
-            <span v-else-if="userStats.today_given >= 20">今日任务已达上限</span>
-            <span v-else>✅ 我已点赞，确认完成</span>
-          </button>
-          <div v-if="userStats.today_given >= 20" style="margin-top:12px;padding:10px;background:rgba(255,179,71,0.1);border-radius:var(--radius-sm);text-align:center;font-size:13px;color:var(--accent2);">
-            你今天的点赞已达上限（20次），明天再来吧！
-          </div>
+    <div v-if="currentTab==='task'">
+      <div v-if="currentTask" class="task-card">
+        <h3 style="margin-bottom:8px">📋 当前任务</h3>
+        <p style="color:var(--text2);font-size:14px;margin-bottom:16px">去给对方创作号的这篇文章点赞</p>
+        <div class="task-info">
+          <div class="task-info-row"><span class="task-info-label">对方马甲</span><span class="task-info-value">{{ currentTask.giver_username }}</span></div>
+          <div class="task-info-row"><span class="task-info-label">文章链接</span><a :href="currentTask.article_url" target="_blank" class="link-btn">🔗 打开文章</a></div>
         </div>
-        <div v-else-if="loadingTask" class="empty-state">
-          <div class="empty-icon">⏳</div>
-          <div class="empty-text">正在查找可分配的任务...</div>
+        <div class="task-steps">
+          <ol>
+            <li><strong>打开链接</strong>，用你的马甲号 LOFTER 账号登录并点赞</li>
+            <li><strong>回到这里</strong>，点击下方按钮确认已完成点赞</li>
+          </ol>
         </div>
-        <div v-else class="empty-state">
-          <div class="empty-icon">✅</div>
-          <div class="empty-text" style="margin-bottom:8px;">暂时没有待处理的任务</div>
-          <div class="empty-text" style="font-size:12px;">队列中所有人已完成，稍后再来看看吧</div>
+        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:16px" :disabled="liking" @click="confirmLike">
+          {{ liking ? '⏳ 处理中...' : (userStats.today_given >= 20 ? '今日任务已达上限' : '✅ 我已点赞，确认完成') }}
+        </button>
+        <p v-if="userStats.today_given >= 20" style="text-align:center;color:var(--warning);font-size:13px;margin-top:8px">你今天的点赞已达上限（20次），明天再来吧！</p>
+      </div>
+      <div v-else class="task-card">
+        <div v-if="loadingTask" class="empty">⏳ 正在查找可分配的任务...</div>
+        <div v-else class="empty">
+          <p style="font-size:32px;margin-bottom:8px">✅</p>
+          <p>暂时没有待处理的任务</p>
+          <p style="font-size:13px;margin-top:4px">队列中所有人已完成，稍后再来看看吧</p>
         </div>
       </div>
     </div>
 
     <!-- Queue Tab -->
-    <div v-if="currentTab==='queue'" class="fade-enter-active" style="animation:slideUp 0.3s ease;">
-      <div class="card">
-        <div class="card-title">📊 排队队列</div>
-        <div class="card-sub">先来后到，位置透明。你的创作号排到第一位时，将获得一次回赞。</div>
-        <div v-if="queueItems.length === 0" class="empty-state">
-          <div class="empty-icon">📭</div>
-          <div class="empty-text">队列为空</div>
-        </div>
-        <div class="queue-list" v-else>
-          <div v-for="(item, i) in queueItems" :key="item.id" class="queue-item">
-            <div class="left">
-              <div class="queue-pos" :class="item.status">{{ i + 1 }}</div>
-              <div>
-                <div class="queue-name" :class="{you: item.is_you}">
-                  {{ item.is_you ? '你的创作号' : item.mask_name }}
-                  <span v-if="item.is_you" style="font-size:11px;color:var(--accent2);margin-left:4px;">(你)</span>
-                </div>
-              </div>
-            </div>
-            <div class="queue-status" :class="item.status">
-              {{ item.status === 'waiting' ? '等待中' : item.status === 'done' ? '已完成' : '处理中' }}
-            </div>
-          </div>
-        </div>
+    <div v-if="currentTab==='queue'">
+      <h3 style="margin-bottom:8px">📊 排队队列</h3>
+      <p style="color:var(--text2);font-size:14px;margin-bottom:16px">先来后到，位置透明。你的创作号排到第一位时，将获得一次回赞。</p>
+      <div v-if="queueItems.length === 0" class="empty">📭 队列为空</div>
+      <div v-for="(item, i) in queueItems" :key="item.id" class="queue-item">
+        <div class="queue-pos">{{ i + 1 }}</div>
+        <div class="queue-name">{{ item.is_you ? '你的创作号 (你)' : item.mask_name }}</div>
+        <div class="queue-status" :class="item.status === 'waiting' ? 'status-waiting' : 'status-done'">{{ item.status === 'waiting' ? '等待中' : '已完成' }}</div>
       </div>
     </div>
 
-    <!-- Logs Tab -->
-    <div v-if="currentTab==='logs'" class="fade-enter-active" style="animation:slideUp 0.3s ease;">
-      <div class="card">
-        <div class="card-title">📜 溯源日志</div>
-        <div class="card-sub">只显示马甲号，不暴露任何创作号信息。</div>
-        <div v-if="logItems.length === 0" class="empty-state">
-          <div class="empty-icon">📭</div>
-          <div class="empty-text">暂无点赞记录</div>
-        </div>
-        <div class="log-list" v-else>
-          <div v-for="item in logItems" :key="item.id" class="log-item">
-            <span class="log-name">{{ item.from_username }}</span>
-            <span class="log-arrow">→</span>
-            <span class="log-name">{{ item.to_username }}</span>
-            <span class="log-time">{{ item.time }}</span>
-          </div>
-        </div>
+    <!-- Log Tab -->
+    <div v-if="currentTab==='log'">
+      <h3 style="margin-bottom:8px">📜 溯源日志</h3>
+      <p style="color:var(--text2);font-size:14px;margin-bottom:16px">只显示马甲号，不暴露任何创作号信息。</p>
+      <div v-if="logItems.length === 0" class="empty">📭 暂无点赞记录</div>
+      <div v-for="item in logItems" :key="item.id" class="log-item">
+        <span>{{ item.from_username }}</span>
+        <span class="log-arrow">→</span>
+        <span>{{ item.to_username }}</span>
+        <span class="log-time">{{ item.time }}</span>
       </div>
     </div>
   </div>
 
-  <!-- ====== AUTH MODAL ====== -->
-  <div class="modal-overlay" v-if="showAuth" @click.self="showAuth=false">
+  <!-- Auth Modal -->
+  <div class="modal-overlay" v-if="showAuth" @click.self="showAuth = false">
     <div class="modal">
-      <button class="close" @click="showAuth=false">✕</button>
-      <template v-if="authMode==='login'">
-        <h3>欢迎回来</h3>
-        <div class="sub">登录赞链，继续点赞互助</div>
-        <div class="form-error" v-if="authError">{{ authError }}</div>
-        <div class="form-group">
-          <label>马甲号用户名</label>
-          <input v-model="authUser.username" placeholder="你的 LOFTER 马甲号" @keyup.enter="login" />
-        </div>
-        <div class="form-group">
-          <label>邮箱</label>
-          <input v-model="authUser.email" type="email" placeholder="注册时使用的邮箱" @keyup.enter="login" />
-        </div>
-        <div class="form-group">
-          <label>密码</label>
-          <input v-model="authUser.password" type="password" placeholder="••••••••" @keyup.enter="login" />
-        </div>
-        <div class="form-actions">
-          <button class="btn btn-primary" @click="login" :disabled="authLoading" style="flex:1;justify-content:center;">
-            {{ authLoading ? '登录中...' : '登录' }}
-          </button>
-        </div>
-        <div class="form-footer">
-          还没有账号？<a @click="authMode='register'">立即注册</a>
-        </div>
-      </template>
-      <template v-else>
-        <h3>注册赞链</h3>
-        <div class="sub">创建一个新账号，开始点赞互助</div>
-        <div class="form-error" v-if="authError">{{ authError }}</div>
-        <div class="form-success" v-if="authSuccess">{{ authSuccess }}</div>
-        <div class="form-group">
-          <label>马甲号用户名 *</label>
-          <input v-model="authUser.username" placeholder="你的 LOFTER 马甲号（用于点赞）" />
-          <div class="hint">一个你不用的空号，即使被封也无所谓</div>
-        </div>
-        <div class="form-group">
-          <label>创作号用户名 *</label>
-          <input v-model="authUser.mainAccount" placeholder="你的 LOFTER 创作主号（用于收赞）" />
-          <div class="hint">你的心血账号，只提供用户名，不参与任何操作</div>
-        </div>
-        <div class="form-group">
-          <label>邮箱 *</label>
-          <input v-model="authUser.email" type="email" placeholder="your@email.com" />
-        </div>
-        <div class="form-group">
-          <label>密码 *</label>
-          <input v-model="authUser.password" type="password" placeholder="至少6位" />
-        </div>
-        <div class="form-actions">
-          <button class="btn btn-primary" @click="register" :disabled="authLoading" style="flex:1;justify-content:center;">
-            {{ authLoading ? '注册中...' : '注册并登录' }}
-          </button>
-        </div>
-        <div class="form-footer">
-          已有账号？<a @click="authMode='login'">立即登录</a>
-        </div>
-      </template>
+      <h3>{{ authMode === 'login' ? '登录' : '注册' }}</h3>
+      <div class="modal-tabs">
+        <div class="modal-tab" :class="{active: authMode==='login'}" @click="authMode='login'">登录</div>
+        <div class="modal-tab" :class="{active: authMode==='register'}" @click="authMode='register'">注册</div>
+      </div>
+      <div v-if="authError" class="form-error">{{ authError }}</div>
+      <div v-if="authSuccess" class="form-success">{{ authSuccess }}</div>
+      <div v-if="authMode === 'register'">
+        <div class="form-group"><label>马甲号（用于点赞）</label><input v-model="authUser.username" placeholder="你的马甲号LOFTER用户名"></div>
+        <div class="form-group"><label>创作号（用于收赞）</label><input v-model="authUser.mainAccount" placeholder="你的创作号LOFTER用户名"></div>
+      </div>
+      <div v-else>
+        <div class="form-group"><label>马甲号</label><input v-model="authUser.username" placeholder="你的马甲号LOFTER用户名"></div>
+      </div>
+      <div class="form-group"><label>邮箱</label><input v-model="authUser.email" type="email" placeholder="your@email.com"></div>
+      <div class="form-group"><label>密码</label><input v-model="authUser.password" type="password" placeholder="至少6位"></div>
+      <button class="btn btn-primary" :disabled="authLoading" @click="handleAuth">{{ authLoading ? '处理中...' : (authMode === 'login' ? '登录' : '注册') }}</button>
     </div>
   </div>
 </div>
 
 <script>
-const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
-const supabase = window.supabase.createClient(
+const { createApp, ref, reactive, computed, onMounted } = Vue;
+const sb = window.supabase.createClient(
   'https://zrxvibalglblsjbzlzut.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyeHZpYmFsZ2xibHNqYnpsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NjkxNTYsImV4cCI6MjA5ODU0NTE1Nn0.kZvWuvNgWo6LaLV19HIadbo3kSDP9mYys4gUUsmewzY'
 );
@@ -834,195 +308,100 @@ const supabase = window.supabase.createClient(
 createApp({
   setup() {
     const user = ref(null);
-    const userStats = reactive({ given:0, received:0, today_given:0 });
+    const showLanding = ref(true);
+    const userStats = reactive({ given: 0, received: 0, today_given: 0 });
     const currentTab = ref('task');
     const currentTask = ref(null);
     const queueItems = ref([]);
     const logItems = ref([]);
     const loadingTask = ref(false);
     const liking = ref(false);
-
-    // Auth
     const showAuth = ref(false);
     const authMode = ref('login');
     const authError = ref('');
     const authSuccess = ref('');
     const authLoading = ref(false);
-    const authUser = reactive({ username:'', mainAccount:'', email:'', password:'' });
-
-    // Toast
-    const toast = reactive({ show:false, msg:'', type:'info' });
+    const authUser = reactive({ username: '', mainAccount: '', email: '', password: '' });
+    const toast = reactive({ show: false, msg: '', type: 'info' });
     let toastTimer = null;
-    function showToast(msg, type='info') {
-      toast.msg = msg; toast.type = type; toast.show = true;
-      if (toastTimer) clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => { toast.show = false; }, 3500);
-    }
 
-    // FAQ
-    const faqs = ref([
-      { q:'我的创作号会被封吗？', a:'不会。你的创作号只提供一个用户名给赞链，不登录、不授权、不参与任何操作。LOFTER完全不知道这个号参与了点赞互助，零风险。', open:false },
-      { q:'我的马甲号被封了怎么办？', a:'马甲号就是一个空号，被封了换一个就行。创作号完全不受影响，你已有的排队和赞数也不会丢。', open:false },
-      { q:'排队要等多久？', a:'取决于平台活跃用户数。用户越多排队越快。队列位置公开透明，你可以随时看到前面还有几个人。', open:false },
-      { q:'一个账号每天能点多少次？', a:'每天最多20次。每次完成一个任务，你的创作号排一次队。多劳多得。', open:false },
-      { q:'同一个文章能被同一个人重复点赞吗？', a:'不会。系统会记录已点赞记录，一个LOFTER账号对同一篇文章只能点一次红心。任务分配时会自动去重。', open:false },
-      { q:'点赞记录会暴露我的创作号吗？', a:'不会。所有公开的点赞记录只显示马甲号。创作号信息只有你自己能看到，其他人无法从日志中获取。', open:false },
-    ]);
+    function showToast(msg, type) {
+      toast.msg = msg; toast.type = type || 'info'; toast.show = true;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.show = false; }, 3000);
+    }
 
     function scrollTo(id) {
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+      document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
     }
 
-    function goHome() {
-      if (user.value) { currentTab.value = 'task'; }
-      else { window.scrollTo({ top:0, behavior:'smooth' }); }
-    }
-
-    // ---------- Auth ----------
-    async function register() {
-      authError.value = '';
-      authSuccess.value = '';
-      if (!authUser.username.trim()) { authError.value = '请填写马甲号用户名'; return; }
-      if (!authUser.mainAccount.trim()) { authError.value = '请填写创作号用户名'; return; }
-      if (!authUser.email.trim()) { authError.value = '请填写邮箱'; return; }
-      if (!authUser.password.trim() || authUser.password.length < 6) { authError.value = '密码至少6位'; return; }
+    async function handleAuth() {
+      authError.value = ''; authSuccess.value = '';
+      if (!authUser.email || !authUser.password || !authUser.username) {
+        authError.value = '请填写所有字段'; return;
+      }
+      if (authUser.password.length < 6) {
+        authError.value = '密码至少6位'; return;
+      }
       authLoading.value = true;
       try {
-        // 1. Sign up with Supabase Auth
-        const { data: authData, error: authErr } = await supabase.auth.signUp({
-          email: authUser.email.trim(),
-          password: authUser.password,
-        });
-        if (authErr) { authError.value = authErr.message; authLoading.value = false; return; }
-
-        // 2. Insert into users table
-        const { error: insertErr } = await supabase.from('users').insert({
-          username: authUser.username.trim(),
-          main_account: authUser.mainAccount.trim(),
-          given_count: 0,
-          received_count: 0,
-          today_given: 0,
-          last_given_date: null,
-        });
-        if (insertErr) {
-          if (insertErr.code === '23505') {
-            authError.value = '该马甲号用户名已被注册';
-          } else {
-            authError.value = insertErr.message;
-          }
-          authLoading.value = false;
-          return;
-        }
-
-        authSuccess.value = '注册成功！正在自动登录...';
-
-        // 3. Sign in after register
-        const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
-          email: authUser.email.trim(),
-          password: authUser.password,
-        });
-        if (signInErr) { authError.value = signInErr.message; authLoading.value = false; return; }
-
-        // 4. Fetch user by email
-        const { data: userRows } = await supabase.from('users')
-          .select('*')
-          .eq('username', authUser.username.trim())
-          .single();
-
-        if (userRows) {
-          const u = { ...userRows, auth_uid: signInData.user.id };
-          user.value = u;
-          localStorage.setItem('zhanlian_user', JSON.stringify(u));
-          showToast('注册成功，欢迎加入赞链！', 'success');
-          showAuth.value = false;
-          resetAuthForm();
-          loadDashboard();
-        } else {
-          showToast('注册成功，请稍后重新登录', 'success');
+        if (authMode.value === 'register') {
+          if (!authUser.mainAccount) { authError.value = '请填写创作号'; authLoading.value = false; return; }
+          const { data, error } = await sb.auth.signUp({ email: authUser.email, password: authUser.password });
+          if (error) { authError.value = error.message; authLoading.value = false; return; }
+          const { error: dbError } = await sb.from('users').insert({
+            username: authUser.username,
+            main_account: authUser.mainAccount,
+            given_count: 0, received_count: 0, today_given: 0,
+            last_given_date: new Date().toISOString().split('T')[0]
+          });
+          if (dbError) { authError.value = dbError.message; authLoading.value = false; return; }
+          authSuccess.value = '注册成功！请登录';
           authMode.value = 'login';
-        }
-      } catch(e) {
-        authError.value = '网络错误，请重试';
-      }
-      authLoading.value = false;
-    }
-
-    async function login() {
-      authError.value = '';
-      if (!authUser.username.trim()) { authError.value = '请填写马甲号用户名'; return; }
-      if (!authUser.email.trim()) { authError.value = '请填写邮箱'; return; }
-      if (!authUser.password.trim()) { authError.value = '请填写密码'; return; }
-      authLoading.value = true;
-      try {
-        const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
-          email: authUser.email.trim(),
-          password: authUser.password,
-        });
-        if (authErr) { authError.value = authErr.message; authLoading.value = false; return; }
-
-        const { data: userRows } = await supabase.from('users')
-          .select('*')
-          .eq('username', authUser.username.trim())
-          .maybeSingle();
-
-        if (!userRows) {
-          authError.value = '马甲号用户名与邮箱不匹配';
           authLoading.value = false;
-          return;
+        } else {
+          const { data, error } = await sb.auth.signInWithPassword({ email: authUser.email, password: authUser.password });
+          if (error) { authError.value = error.message; authLoading.value = false; return; }
+          await loadUser(data.user);
+          showAuth.value = false;
+          showLanding.value = false;
+          showToast('登录成功', 'success');
         }
-
-        const u = { ...userRows, auth_uid: authData.user.id };
-        user.value = u;
-        localStorage.setItem('zhanlian_user', JSON.stringify(u));
-        showToast('登录成功', 'success');
-        showAuth.value = false;
-        resetAuthForm();
-        loadDashboard();
-      } catch(e) {
-        authError.value = '网络错误，请重试';
+      } catch (e) {
+        authError.value = e.message || '操作失败';
       }
       authLoading.value = false;
     }
 
-    function logout() {
-      user.value = null;
-      localStorage.removeItem('zhanlian_user');
-      currentTab.value = 'task';
-      currentTask.value = null;
-      queueItems.value = [];
-      logItems.value = [];
-      showToast('已退出登录', 'info');
+    async function loadUser(authUser) {
+      const { data, error } = await sb.from('users').select('*').eq('username', authUser.username).maybeSingle();
+      if (error || !data) {
+        const { data: all } = await sb.from('users').select('*');
+        showToast('用户数据未找到，请检查马甲号', 'error');
+        return;
+      }
+      user.value = data;
+      await checkDailyReset();
+      await loadStats();
+      await loadTask();
+      await loadQueue();
+      await loadLog();
     }
 
-    function resetAuthForm() {
-      authUser.username = '';
-      authUser.mainAccount = '';
-      authUser.email = '';
-      authUser.password = '';
-      authError.value = '';
-      authSuccess.value = '';
+    async function checkDailyReset() {
+      if (!user.value) return;
+      const today = new Date().toISOString().split('T')[0];
+      if (user.value.last_given_date !== today) {
+        user.value.today_given = 0;
+        await sb.from('users').update({ today_given: 0, last_given_date: today }).eq('id', user.value.id);
+      }
     }
 
-    // ---------- Dashboard ----------
     async function loadStats() {
       if (!user.value) return;
-      const { data } = await supabase.from('users')
-        .select('given_count, received_count, today_given, last_given_date')
-        .eq('id', user.value.id)
-        .single();
-      if (data) {
-        userStats.given = data.given_count || 0;
-        userStats.received = data.received_count || 0;
-        // Reset today_given if last_given_date is not today
-        const today = new Date().toISOString().slice(0,10);
-        if (data.last_given_date === today) {
-          userStats.today_given = data.today_given || 0;
-        } else {
-          userStats.today_given = 0;
-          await supabase.from('users').update({ today_given:0, last_given_date:today }).eq('id', user.value.id);
-        }
-      }
+      userStats.given = user.value.given_count || 0;
+      userStats.received = user.value.received_count || 0;
+      userStats.today_given = user.value.today_given || 0;
     }
 
     async function loadTask() {
@@ -1030,361 +409,166 @@ createApp({
       loadingTask.value = true;
       currentTask.value = null;
       try {
-        // Find first waiting queue entry that is NOT the current user
-        const { data: queueEntry, error: qErr } = await supabase.from('queue')
+        const { data, error } = await sb.from('queue')
           .select('*, users!inner(username, main_account)')
           .eq('status', 'waiting')
           .neq('user_id', user.value.id)
           .order('position', { ascending: true })
           .limit(1)
           .maybeSingle();
-
-        if (!queueEntry || qErr) {
-          // No tasks available
-          // Check if there are completed tasks waiting for us
-          await checkPendingReturns();
-          loadingTask.value = false;
-          return;
-        }
-
-        // We have a task: check if we already gave them a like today
-        const today = new Date().toISOString().slice(0,10);
-
-        // Check 1: Have we already given to this user today?
-        const { data: existingGiven } = await supabase.from('tasks')
-          .select('id')
-          .eq('giver_id', user.value.id)
-          .eq('receiver_main', queueEntry.users.main_account)
-          .gte('created_at', today)
-          .maybeSingle();
-
-        if (existingGiven) {
-          // Already gave to this user today, move to next
-          loadingTask.value = false;
-          return;
-        }
-
-        // Check 2: Are there other pending tasks from us?
-        const { data: myPending } = await supabase.from('tasks')
-          .select('id')
-          .eq('giver_id', user.value.id)
-          .eq('status', 'pending')
-          .maybeSingle();
-
-        if (myPending) {
-          // We already have a pending task, show it
-          const { data: fullTask } = await supabase.from('tasks')
-            .select('*, users!inner(username, main_account)')
-            .eq('id', myPending.id)
-            .single();
-          if (fullTask) {
-            currentTask.value = {
-              id: fullTask.id,
-              giver_username: fullTask.users.username,
-              receiver_main: fullTask.receiver_main,
-              article_url: fullTask.article_url,
-            };
-            loadingTask.value = false;
-            return;
-          }
-        }
-
-        // All clear - create a new task
-        const { data: newTask, error: tErr } = await supabase.from('tasks').insert({
-          giver_id: user.value.id,
-          receiver_main: queueEntry.users.main_account,
-          receiver_name: queueEntry.users.username,
-          article_url: queueEntry.article_url,
-          status: 'pending',
-        }).select('*, users!inner(username, main_account)').single();
-
-        if (newTask) {
+        if (data) {
           currentTask.value = {
-            id: newTask.id,
-            giver_username: newTask.users.username,
-            receiver_main: newTask.users.main_account,
-            article_url: newTask.article_url,
+            queue_id: data.id,
+            giver_username: data.users.username,
+            receiver_main: data.users.main_account,
+            article_url: data.article_url,
+            giver_user_id: data.user_id
           };
         }
-      } catch(e) {
-        console.error('Load task error:', e);
+      } catch (e) {
+        showToast('加载任务失败', 'error');
       }
       loadingTask.value = false;
     }
 
-    async function checkPendingReturns() {
-      // Check if someone has completed a task for us
-      if (!user.value) return;
-      const { data: completedQueues } = await supabase.from('queue')
-        .select('*')
-        .eq('user_id', user.value.id)
-        .eq('status', 'done')
-        .gte('created_at', new Date().toISOString().slice(0,10))
-        .order('created_at', { ascending: false });
-
-      if (completedQueues && completedQueues.length > 0) {
-        // Someone liked our article!
-        await loadStats();
-        await loadQueue();
-        await loadLogs();
-      }
-    }
-
     async function confirmLike() {
-      if (!currentTask.value || liking.value || userStats.today_given >= 20) return;
+      if (!currentTask.value || liking.value) return;
+      if (userStats.today_given >= 20) { showToast('今日点赞已达上限', 'warning'); return; }
       liking.value = true;
       try {
-        const taskId = currentTask.value.id;
-        const today = new Date().toISOString().slice(0,10);
-
-        // a. Mark task as completed
-        const { error: tErr } = await supabase.from('tasks')
-          .update({ status: 'completed' })
-          .eq('id', taskId);
-        if (tErr) { showToast('更新任务失败', 'error'); liking.value = false; return; }
-
-        // b. Get max position in queue
-        const { data: maxPos } = await supabase.from('queue')
-          .select('position')
-          .order('position', { ascending: false })
-          .limit(1);
-        const nextPos = (maxPos && maxPos.length > 0) ? maxPos[0].position + 1 : 1;
-
-        // c. Queue the current user's creation account
-        const { error: qErr } = await supabase.from('queue').insert({
-          user_id: user.value.id,
+        // 1. Record task as completed
+        const { error: tErr } = await sb.from('tasks').insert({
+          giver_id: user.value.id,
+          receiver_main: currentTask.value.receiver_main,
+          receiver_name: currentTask.value.giver_username,
           article_url: currentTask.value.article_url,
-          status: 'waiting',
-          position: nextPos,
+          status: 'completed'
         });
-        if (qErr) { showToast('排队失败', 'error'); liking.value = false; return; }
+        if (tErr) { showToast('记录任务失败: ' + tErr.message, 'error'); liking.value = false; return; }
 
-        // d. Update user stats
-        const updateData = { given_count: userStats.given + 1 };
-        if (today !== user.value.last_given_date) {
-          updateData.today_given = 1;
-          updateData.last_given_date = today;
-        } else {
-          updateData.today_given = userStats.today_given + 1;
+        // 2. Update user stats
+        const newToday = (user.value.today_given || 0) + 1;
+        const newGiven = (user.value.given_count || 0) + 1;
+        const today = new Date().toISOString().split('T')[0];
+        await sb.from('users').update({
+          today_given: newToday, given_count: newGiven, last_given_date: today
+        }).eq('id', user.value.id);
+        user.value.today_given = newToday;
+        user.value.given_count = newGiven;
+        userStats.today_given = newToday;
+        userStats.given = newGiven;
+
+        // 3. Mark queue entry as done
+        await sb.from('queue').update({ status: 'done' }).eq('id', currentTask.value.queue_id);
+
+        // 4. Add self to queue (if not already in)
+        const { data: existing } = await sb.from('queue')
+          .select('id').eq('user_id', user.value.id).eq('status', 'waiting').maybeSingle();
+        if (!existing) {
+          const { data: maxRow } = await sb.from('queue')
+            .select('position').eq('status', 'waiting').order('position', { ascending: false }).limit(1).maybeSingle();
+          const maxPos = maxRow ? maxRow.position : 0;
+          await sb.from('queue').insert({
+            user_id: user.value.id,
+            article_url: 'https://woshiminghuana.lofter.com/',
+            status: 'waiting',
+            position: maxPos + 1
+          });
         }
 
-        const { error: uErr } = await supabase.from('users')
-          .update(updateData)
-          .eq('id', user.value.id);
-        if (uErr) console.error('Update user stats error:', uErr);
+        // 5. Update receiver's received_count
+        await sb.from('users').update({ received_count: (currentTask.value.giver_user_id) })
+          .eq('username', currentTask.value.giver_username);
 
-        // Update local user
-        const { data: updatedUser } = await supabase.from('users')
-          .select('*').eq('id', user.value.id).single();
-        if (updatedUser) {
-          user.value = { ...updatedUser, auth_uid: user.value.auth_uid };
-          localStorage.setItem('zhanlian_user', JSON.stringify(user.value));
-        }
-
-        // e. Process the queue: get next waiting entry and create task for them
-        await processQueue();
-
-        showToast('点赞成功！你的创作号已进入排队队列 ✅', 'success');
+        showToast('点赞成功！已加入队列', 'success');
         currentTask.value = null;
-        await loadStats();
+        await loadTask();
         await loadQueue();
-        await loadLogs();
-
-        // Try to load next task
-        setTimeout(() => loadTask(), 500);
-      } catch(e) {
-        console.error('Confirm like error:', e);
-        showToast('操作失败，请重试', 'error');
+        await loadLog();
+      } catch (e) {
+        showToast('操作失败: ' + (e.message || ''), 'error');
       }
       liking.value = false;
     }
 
-    async function processQueue() {
-      try {
-        // Get the first waiting queue entry
-        const { data: firstWaiting } = await supabase.from('queue')
-          .select('*')
-          .eq('status', 'waiting')
-          .order('position', { ascending: true })
-          .limit(1)
-          .maybeSingle();
-
-        if (!firstWaiting) return;
-
-        // Mark the first waiting entry as done
-        await supabase.from('queue')
-          .update({ status: 'done' })
-          .eq('id', firstWaiting.id);
-
-        // Update the user's received_count
-        await supabase.rpc('increment_received', { user_id: firstWaiting.user_id });
-      } catch(e) {
-        console.error('Process queue error:', e);
-      }
-    }
-
     async function loadQueue() {
-      if (!user.value) return;
       try {
-        const { data, error } = await supabase.from('queue')
-          .select('*')
-          .order('position', { ascending: true })
-          .limit(50);
-
-        if (error) { console.error(error); return; }
-
-        // Get all user ids to fetch usernames (mask names only)
-        const userIds = [...new Set(data.map(d => d.user_id))];
-        const { data: users } = await supabase.from('users')
-          .select('id, username')
-          .in('id', userIds);
-
-        const userMap = {};
-        if (users) users.forEach(u => { userMap[u.id] = u.username; });
-
-        queueItems.value = data.map(d => ({
-          id: d.id,
-          mask_name: userMap[d.user_id] || '未知用户',
-          status: d.status,
-          position: d.position,
-          is_you: d.user_id === user.value.id,
-        }));
-      } catch(e) {
-        console.error('Load queue error:', e);
-      }
-    }
-
-    async function loadLogs() {
-      if (!user.value) return;
-      try {
-        // Get tasks where user is giver
-        const { data: givenTasks } = await supabase.from('tasks')
+        const { data, error } = await sb.from('queue')
           .select('*, users!inner(username)')
-          .eq('giver_id', user.value.id)
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        // Get tasks where user is receiver
-        const { data: receivedTasks } = await supabase.from('tasks')
-          .select('*, giver:users!tasks_giver_id_fkey(username)')
-          .eq('receiver_main', user.value.main_account)
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        const logs = [];
-
-        if (givenTasks) {
-          givenTasks.forEach(t => {
-            if (t.status === 'completed') {
-              logs.push({
-                id: `g-${t.id}`,
-                from_username: user.value.username,
-                to_username: t.users.username,
-                time: formatTime(t.created_at),
-                type: 'given',
-              });
-            }
-          });
+          .order('position', { ascending: true });
+        if (data) {
+          queueItems.value = data.map(item => ({
+            id: item.id,
+            mask_name: item.users.username,
+            status: item.status,
+            is_you: user.value && item.user_id === user.value.id
+          }));
         }
-
-        if (receivedTasks) {
-          receivedTasks.forEach(t => {
-            if (t.status === 'completed' && t.giver) {
-              logs.push({
-                id: `r-${t.id}`,
-                from_username: t.giver.username,
-                to_username: user.value.username,
-                time: formatTime(t.created_at),
-                type: 'received',
-              });
-            }
-          });
-        }
-
-        logs.sort((a, b) => b.id.localeCompare(a.id));
-        logItems.value = logs.slice(0, 100);
-      } catch(e) {
-        console.error('Load logs error:', e);
-      }
+      } catch (e) {}
     }
 
-    function formatTime(iso) {
-      if (!iso) return '';
-      const d = new Date(iso);
-      const now = new Date();
-      const diff = now - d;
-      if (diff < 60000) return '刚刚';
-      if (diff < 3600000) return `${Math.floor(diff/60000)}分钟前`;
-      if (diff < 86400000) return `${Math.floor(diff/3600000)}小时前`;
-      return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    async function loadLog() {
+      if (!user.value) return;
+      try {
+        const { data: given } = await sb.from('tasks')
+          .select('id, receiver_name, created_at').eq('giver_id', user.value.id).eq('status', 'completed')
+          .order('created_at', { ascending: false }).limit(20);
+        const { data: received } = await sb.from('tasks')
+          .select('id, giver_id, users!inner(username), created_at').eq('receiver_name', user.value.username).eq('status', 'completed')
+          .order('created_at', { ascending: false }).limit(20);
+        let logs = [];
+        if (given) given.forEach(t => logs.push({ id: 'g' + t.id, from_username: user.value.username, to_username: t.receiver_name, time: formatTime(t.created_at) }));
+        if (received) received.forEach(t => logs.push({ id: 'r' + t.id, from_username: t.users.username, to_username: user.value.username, time: formatTime(t.created_at) }));
+        logs.sort((a, b) => b.time > a.time ? 1 : -1);
+        logItems.value = logs;
+      } catch (e) {}
     }
 
-    async function loadDashboard() {
-      await loadStats();
-      await loadTask();
-      await loadQueue();
-      await loadLogs();
+    function formatTime(ts) {
+      const d = new Date(ts); const now = new Date();
+      const diff = (now - d) / 1000;
+      if (diff < 60) return '刚刚';
+      if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
+      if (diff < 86400) return Math.floor(diff / 3600) + '小时前';
+      return Math.floor(diff / 86400) + '天前';
     }
 
-    // ----- Periodically check queue and task status -----
-    let pollTimer = null;
-    function startPolling() {
-      stopPolling();
-      pollTimer = setInterval(() => {
-        if (user.value && currentTab.value !== 'home') {
-          loadQueue();
-          loadTask();
-          loadLogs();
-        }
-      }, 15000);
+    async function logout() {
+      await sb.auth.signOut();
+      user.value = null;
+      showLanding.value = true;
+      showToast('已退出登录', 'info');
     }
 
-    function stopPolling() {
-      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-    }
-
-    // ----- On mount: check localStorage for saved user -----
     onMounted(async () => {
-      const saved = localStorage.getItem('zhanlian_user');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          // Verify user still exists
-          const { data } = await supabase.from('users').select('*').eq('id', parsed.id).single();
-          if (data) {
-            user.value = { ...data, auth_uid: parsed.auth_uid };
-            await loadDashboard();
-            startPolling();
-          } else {
-            localStorage.removeItem('zhanlian_user');
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        // Try to restore user by email lookup
+        const { data } = await sb.from('users').select('*').limit(1);
+        // We need username from somewhere; for now check if there's a stored username
+        const storedUsername = localStorage.getItem('zanlian_username');
+        if (storedUsername) {
+          const { data: userData } = await sb.from('users').select('*').eq('username', storedUsername).maybeSingle();
+          if (userData) {
+            await loadUser(userData);
+            showLanding.value = false;
           }
-        } catch(e) {
-          localStorage.removeItem('zhanlian_user');
         }
       }
+      // Auto-refresh queue every 15 seconds
+      setInterval(() => { if (user.value && !showLanding.value) loadQueue(); }, 15000);
     });
 
-    // Watch user changes
-    watch(user, (newVal) => {
-      if (newVal) {
-        startPolling();
-      } else {
-        stopPolling();
-      }
-    });
-
-    // Watch tab changes
-    watch(currentTab, (tab) => {
-      if (user.value && tab === 'queue') loadQueue();
-      if (user.value && tab === 'logs') loadLogs();
-      if (user.value && tab === 'task') { loadStats(); loadTask(); }
+    // Save username to localStorage when user logs in
+    watch(user, (newUser) => {
+      if (newUser) localStorage.setItem('zanlian_username', newUser.username);
+      else localStorage.removeItem('zanlian_username');
     });
 
     return {
-      user, userStats, currentTab, currentTask, queueItems, logItems, loadingTask, liking,
-      showAuth, authMode, authError, authSuccess, authLoading, authUser, faqs,
-      toast, showToast,
-      scrollTo, goHome, register, login, logout, confirmLike,
+      user, showLanding, userStats, currentTab, currentTask, queueItems, logItems,
+      loadingTask, liking, showAuth, authMode, authError, authSuccess, authLoading,
+      authUser, toast, scrollTo, handleAuth, confirmLike, logout
     };
   }
 }).mount('#app');
