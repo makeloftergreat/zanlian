@@ -71,6 +71,19 @@ a{color:var(--accent);text-decoration:none}
 .setup-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:32px 24px;margin:24px 0}
 .setup-box h2{font-size:22px;font-weight:800;margin-bottom:6px;text-align:center}
 .setup-box .setup-sub{font-size:14px;color:var(--text-secondary);text-align:center;margin-bottom:24px}
+
+.btn-settings{background:transparent;border:1px solid var(--border);color:var(--text-primary);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;white-space:nowrap;transition:all .2s}
+.btn-settings:hover{border-color:var(--accent);color:var(--accent)}
+.btn-logout{background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;white-space:nowrap;transition:all .2s}
+.btn-logout:hover{border-color:#ef4444;color:#ef4444}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-box h2{font-size:20px;font-weight:800;margin-bottom:20px;text-align:center}
+.modal-actions{display:flex;gap:12px;margin-top:20px}
+.modal-actions button{flex:1;padding:12px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none}
+.btn-cancel{background:transparent;border:1px solid var(--border) !important;color:var(--text-secondary)}
+.btn-save{background:var(--accent);color:#fff}
 .auth-error{background:rgba(255,92,92,.1);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);margin-bottom:16px}
 
 /* Dashboard */
@@ -293,13 +306,18 @@ a{color:var(--accent);text-decoration:none}
       <p class="setup-sub">填写你的 LOFTER 账号，开始互助点赞</p>
       <div class="form-group">
         <label>点赞号（马甲号）</label>
-        <input v-model="setupForm.username" type="text" placeholder="你的 LOFTER 马甲用户名">
+        <input v-model="setupForm.username" type="text" placeholder="你的 LOFTER 马甲号链接，如 https://xxx.lofter.com/">
         <div class="hint">用这个号去给别人点赞</div>
       </div>
       <div class="form-group">
         <label>收赞号（创作号）</label>
-        <input v-model="setupForm.main_account" type="text" placeholder="你的 LOFTER 创作用户名">
-        <div class="hint">这个号的文章将获得回赞</div>
+        <input v-model="setupForm.main_account" type="text" placeholder="你的 LOFTER 创作号链接，如 https://yyy.lofter.com/">
+        <div class="hint">这个号将获得别人的回赞</div>
+      </div>
+      <div class="form-group">
+        <label>收赞文章链接</label>
+        <input v-model="setupForm.article_url" type="text" placeholder="你想让别人点赞的文章地址">
+        <div class="hint">别人会打开这个链接去给你的文章点赞</div>
       </div>
       <button class="btn-full" @click="saveSetup" :disabled="loading">
         {{ loading ? '保存中...' : '保存并开始' }}
@@ -314,7 +332,7 @@ a{color:var(--accent);text-decoration:none}
         <div class="avatar">{{ profile.username ? profile.username[0].toUpperCase() : '?' }}</div>
         <div class="info">
           <h3>{{ profile.username }}</h3>
-          <p>马甲号 · 创作号：{{ profile.main_account }}</p>
+          <p>收赞号：{{ profile.main_account }}</p>
         </div>
       </div>
       <div class="stats">
@@ -326,6 +344,8 @@ a{color:var(--accent);text-decoration:none}
           <div class="num received">{{ profile.received_count }}</div>
           <div class="label">已收赞</div>
         </div>
+        <button class="btn-settings" @click="openSettings">&#9881; 设置</button>
+        <button class="btn-logout" @click="logout">退出</button>
       </div>
     </div>
 
@@ -420,6 +440,32 @@ a{color:var(--accent);text-decoration:none}
   </div>
 </template>
 
+<!-- Settings Modal -->
+<div class="modal-overlay" v-if="showSettingsModal" @click.self="showSettingsModal = false">
+  <div class="modal-box">
+    <h2>账号设置</h2>
+    <div class="form-group">
+      <label>点赞号（马甲号）</label>
+      <input v-model="settingsForm.username" type="text" placeholder="你的 LOFTER 马甲号链接">
+      <div class="hint">用这个号去给别人点赞</div>
+    </div>
+    <div class="form-group">
+      <label>收赞号（创作号）</label>
+      <input v-model="settingsForm.main_account" type="text" placeholder="你的 LOFTER 创作号链接">
+      <div class="hint">这个号将获得别人的回赞</div>
+    </div>
+    <div class="form-group">
+      <label>收赞文章链接</label>
+      <input v-model="settingsForm.article_url" type="text" placeholder="你想让别人点赞的文章地址">
+      <div class="hint">别人会打开这个链接去给你的文章点赞</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" @click="showSettingsModal = false">取消</button>
+      <button class="btn-save" @click="saveSettings" :disabled="loading">{{ loading ? '保存中...' : '保存' }}</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" :class="toast.type" v-if="toast.show">{{ toast.msg }}</div>
 
@@ -455,10 +501,12 @@ createApp({
     const toast = reactive({ show: false, msg: '', type: 'info' });
 
     const regForm = reactive({ email: '', password: '' });
-    const setupForm = reactive({ username: '', main_account: '' });
+    const setupForm = reactive({ username: '', main_account: '', article_url: '' });
     const showSetup = ref(false);
     const loginForm = reactive({ email: '', password: '' });
-    const profile = reactive({ username: '', main_account: '', given_count: 0, received_count: 0, today_given: 0, last_given_date: '' });
+    const profile = reactive({ username: '', main_account: '', article_url: '', given_count: 0, received_count: 0, today_given: 0, last_given_date: '' });
+    const showSettingsModal = ref(false);
+    const settingsForm = reactive({ username: '', main_account: '', article_url: '' });
 
     const faqs = [
       { q: '马甲号和创作号有什么区别？', a: '马甲号是你用来给别人点赞的账号，创作号是你发布原创内容、需要获得点赞的账号。两者完全隔离，互不暴露。' },
@@ -479,6 +527,7 @@ createApp({
       if (data) {
         profile.username = data.username || '';
         profile.main_account = data.main_account || '';
+        profile.article_url = data.article_url || '';
         profile.given_count = data.given_count || 0;
         profile.received_count = data.received_count || 0;
         const today = new Date().toISOString().slice(0, 10);
@@ -495,12 +544,10 @@ createApp({
         const { data: q } = await sb.from('queue').select('*').eq('status', 'waiting').order('position', { ascending: true }).limit(1);
         if (q && q.length > 0) {
           const target = q[0];
-          const { data: targetUser } = await sb.from('users').select('main_account').eq('id', target.user_id).single();
-          const { data: articles } = await sb.from('articles').select('*').eq('user_id', target.user_id).order('created_at', { ascending: false }).limit(1);
-          if (articles && articles.length > 0) {
-            const article = articles[0];
+          const { data: targetUser } = await sb.from('users').select('main_account,article_url').eq('id', target.user_id).single();
+          if (targetUser && targetUser.article_url) {
             const { data: task } = await sb.from('tasks').insert({
-              giver_id: user.value.id, receiver_id: target.user_id, article_url: article.url, status: 'pending'
+              giver_id: user.value.id, receiver_id: target.user_id, article_url: targetUser.article_url, status: 'pending'
             }).select().single();
             currentTask.value = task;
           } else {
@@ -574,14 +621,15 @@ createApp({
     }
 
     async function saveSetup() {
-      if (!setupForm.username || !setupForm.main_account) {
-        showToast('请填写点赞号和收赞号', 'error'); return;
+      if (!setupForm.username || !setupForm.main_account || !setupForm.article_url) {
+        showToast('请填写所有字段', 'error'); return;
       }
       loading.value = true;
-      const { error } = await sb.from('users').update({ username: setupForm.username, main_account: setupForm.main_account }).eq('id', user.value.id);
+      const { error } = await sb.from('users').update({ username: setupForm.username, main_account: setupForm.main_account, article_url: setupForm.article_url }).eq('id', user.value.id);
       if (error) { showToast('保存失败：' + error.message, 'error'); loading.value = false; return; }
       profile.username = setupForm.username;
       profile.main_account = setupForm.main_account;
+      profile.article_url = setupForm.article_url;
       showSetup.value = false;
       showToast('账号信息已保存！', 'success');
       await loadTask();
@@ -611,13 +659,37 @@ createApp({
       loading.value = false;
     }
 
+    function openSettings() {
+      settingsForm.username = profile.username;
+      settingsForm.main_account = profile.main_account;
+      settingsForm.article_url = profile.article_url;
+      showSettingsModal.value = true;
+    }
+
+    async function saveSettings() {
+      if (!settingsForm.username || !settingsForm.main_account || !settingsForm.article_url) {
+        showToast('请填写所有字段', 'error'); return;
+      }
+      loading.value = true;
+      const { error } = await sb.from('users').update({ username: settingsForm.username, main_account: settingsForm.main_account, article_url: settingsForm.article_url }).eq('id', user.value.id);
+      if (error) { showToast('保存失败：' + error.message, 'error'); loading.value = false; return; }
+      profile.username = settingsForm.username;
+      profile.main_account = settingsForm.main_account;
+      profile.article_url = settingsForm.article_url;
+      showSettingsModal.value = false;
+      showToast('设置已保存', 'success');
+      loading.value = false;
+    }
+
     async function logout() {
       await sb.auth.signOut();
       user.value = null;
       showAuth.value = null;
       showSetup.value = false;
+      showSettingsModal.value = false;
       setupForm.username = '';
       setupForm.main_account = '';
+      setupForm.article_url = '';
       showToast('已退出登录', 'info');
     }
 
@@ -656,6 +728,7 @@ createApp({
       user, loading, loadingTask, queueLoading, logLoading, showAuth, authError, tab, faqOpen,
       currentTask, queue, logs, toast, regForm, loginForm, profile, faqs,
       setupForm, showSetup, saveSetup,
+      showSettingsModal, settingsForm, openSettings, saveSettings,
       register, login, logout, confirmTask, loadTask, loadQueue, loadLogs, formatTime
     };
   }

@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username text DEFAULT '',          -- 点赞号（马甲号）
   main_account text DEFAULT '',      -- 收赞号（创作号）
+  article_url text DEFAULT '',       -- 收赞文章链接（别人去点赞的地址）
   given_count int DEFAULT 0,         -- 累计点赞数
   received_count int DEFAULT 0,      -- 累计收赞数
   today_given int DEFAULT 0,         -- 今日已点赞数
