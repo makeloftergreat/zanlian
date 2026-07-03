@@ -67,6 +67,10 @@ a{color:var(--accent);text-decoration:none}
 .btn-full:hover{background:var(--accent-hover)}
 .auth-toggle{text-align:center;margin-top:16px;font-size:14px;color:var(--text-secondary)}
 .auth-toggle a{cursor:pointer;font-weight:600}
+
+.setup-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:32px 24px;margin:24px 0}
+.setup-box h2{font-size:22px;font-weight:800;margin-bottom:6px;text-align:center}
+.setup-box .setup-sub{font-size:14px;color:var(--text-secondary);text-align:center;margin-bottom:24px}
 .auth-error{background:rgba(255,92,92,.1);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);margin-bottom:16px}
 
 /* Dashboard */
@@ -232,22 +236,15 @@ a{color:var(--accent);text-decoration:none}
       <div class="auth-error" v-if="authError">{{ authError }}</div>
       <template v-if="showAuth === 'register'">
         <div class="form-group">
-          <label>马甲号（用于点赞）</label>
-          <input v-model="regForm.username" type="text" placeholder="你的 LOFTER 马甲用户名">
-          <div class="hint">用这个号去给别人点赞</div>
-        </div>
-        <div class="form-group">
-          <label>创作号（用于收赞）</label>
-          <input v-model="regForm.main_account" type="text" placeholder="你的 LOFTER 创作用户名">
-          <div class="hint">这个号的文章将获得回赞</div>
-        </div>
-        <div class="form-group">
           <label>邮箱</label>
           <input v-model="regForm.email" type="email" placeholder="用于注册和登录">
         </div>
         <div class="form-group">
           <label>密码</label>
           <input v-model="regForm.password" type="password" placeholder="至少 6 位">
+        </div>
+        <div class="hint" style="text-align:center;margin-bottom:16px;color:var(--text-dim);font-size:13px">
+          注册后进入网站，再填写你的点赞号和收赞号
         </div>
         <button class="btn-full" @click="register" :disabled="loading">
           {{ loading ? '注册中...' : '注册' }}
@@ -290,6 +287,27 @@ a{color:var(--accent);text-decoration:none}
 <!-- Logged in -->
 <template v-else>
   <div class="container">
+    <!-- Setup onboarding -->
+    <div v-if="showSetup || !profile.username" class="setup-box">
+      <h2>完善账号信息</h2>
+      <p class="setup-sub">填写你的 LOFTER 账号，开始互助点赞</p>
+      <div class="form-group">
+        <label>点赞号（马甲号）</label>
+        <input v-model="setupForm.username" type="text" placeholder="你的 LOFTER 马甲用户名">
+        <div class="hint">用这个号去给别人点赞</div>
+      </div>
+      <div class="form-group">
+        <label>收赞号（创作号）</label>
+        <input v-model="setupForm.main_account" type="text" placeholder="你的 LOFTER 创作用户名">
+        <div class="hint">这个号的文章将获得回赞</div>
+      </div>
+      <button class="btn-full" @click="saveSetup" :disabled="loading">
+        {{ loading ? '保存中...' : '保存并开始' }}
+      </button>
+    </div>
+
+    <!-- Main dashboard (only show after setup) -->
+    <template v-else>
     <!-- Welcome -->
     <div class="welcome-bar">
       <div class="left">
@@ -398,6 +416,7 @@ a{color:var(--accent);text-decoration:none}
         </div>
       </template>
     </div>
+    </template>
   </div>
 </template>
 
@@ -435,7 +454,9 @@ createApp({
     const logs = ref([]);
     const toast = reactive({ show: false, msg: '', type: 'info' });
 
-    const regForm = reactive({ username: '', main_account: '', email: '', password: '' });
+    const regForm = reactive({ email: '', password: '' });
+    const setupForm = reactive({ username: '', main_account: '' });
+    const showSetup = ref(false);
     const loginForm = reactive({ email: '', password: '' });
     const profile = reactive({ username: '', main_account: '', given_count: 0, received_count: 0, today_given: 0, last_given_date: '' });
 
@@ -534,20 +555,38 @@ createApp({
 
     async function register() {
       authError.value = '';
-      if (!regForm.username || !regForm.main_account || !regForm.email || !regForm.password) {
-        authError.value = '请填写所有字段'; return;
+      if (!regForm.email || !regForm.password) {
+        authError.value = '请填写邮箱和密码'; return;
       }
       if (regForm.password.length < 6) { authError.value = '密码至少 6 位'; return; }
       loading.value = true;
       const { data, error } = await sb.auth.signUp({ email: regForm.email, password: regForm.password });
       if (error) { authError.value = error.message; loading.value = false; return; }
       if (data.user) {
-        await sb.from('users').insert({ id: data.user.id, username: regForm.username, main_account: regForm.main_account });
+        await sb.from('users').insert({ id: data.user.id, username: '', main_account: '' });
         user.value = data.user;
         await loadProfile();
         showAuth.value = null;
-        showToast('注册成功！欢迎加入赞链', 'success');
+        showSetup.value = true;
+        showToast('注册成功！请完善你的账号信息', 'success');
       }
+      loading.value = false;
+    }
+
+    async function saveSetup() {
+      if (!setupForm.username || !setupForm.main_account) {
+        showToast('请填写点赞号和收赞号', 'error'); return;
+      }
+      loading.value = true;
+      const { error } = await sb.from('users').update({ username: setupForm.username, main_account: setupForm.main_account }).eq('id', user.value.id);
+      if (error) { showToast('保存失败：' + error.message, 'error'); loading.value = false; return; }
+      profile.username = setupForm.username;
+      profile.main_account = setupForm.main_account;
+      showSetup.value = false;
+      showToast('账号信息已保存！', 'success');
+      await loadTask();
+      await loadQueue();
+      await loadLogs();
       loading.value = false;
     }
 
@@ -559,11 +598,16 @@ createApp({
       if (error) { authError.value = error.message; loading.value = false; return; }
       user.value = data.user;
       await loadProfile();
-      await loadTask();
-      await loadQueue();
-      await loadLogs();
       showAuth.value = null;
-      showToast('登录成功', 'success');
+      if (!profile.username) {
+        showSetup.value = true;
+        showToast('请先完善账号信息', 'info');
+      } else {
+        await loadTask();
+        await loadQueue();
+        await loadLogs();
+        showToast('登录成功', 'success');
+      }
       loading.value = false;
     }
 
@@ -571,6 +615,9 @@ createApp({
       await sb.auth.signOut();
       user.value = null;
       showAuth.value = null;
+      showSetup.value = false;
+      setupForm.username = '';
+      setupForm.main_account = '';
       showToast('已退出登录', 'info');
     }
 
@@ -595,15 +642,20 @@ createApp({
       if (session) {
         user.value = session.user;
         await loadProfile();
-        await loadTask();
-        await loadQueue();
-        await loadLogs();
+        if (profile.username) {
+          await loadTask();
+          await loadQueue();
+          await loadLogs();
+        } else {
+          showSetup.value = true;
+        }
       }
     });
 
     return {
       user, loading, loadingTask, queueLoading, logLoading, showAuth, authError, tab, faqOpen,
       currentTask, queue, logs, toast, regForm, loginForm, profile, faqs,
+      setupForm, showSetup, saveSetup,
       register, login, logout, confirmTask, loadTask, loadQueue, loadLogs, formatTime
     };
   }
