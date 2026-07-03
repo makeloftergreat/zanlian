@@ -36,6 +36,11 @@ temp/
 
 # 截图
 __pw_browser_take_screenshot_*.png
+*_page.png
+homepage*.png
+like_*.png
+register_*.png
+zanlian-*.png
 
 # 上传文件
 uploads/

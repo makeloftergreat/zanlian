@@ -7,6 +7,40 @@
 
 ---
 
+## [v0.3.0] - 2026-07-03
+
+### 重构
+- **UI 全面改版**：整体视觉风格重新设计，更现代、更紧凑
+  - 全新配色方案：红色主色调（#ff5c5c）+ 金色辅色，取代旧的紫色主题
+  - 卡片圆角（16px）+ 柔和过渡动画（cubic-bezier）
+  - 顶部导航栏改为 sticky 定位 + 毛玻璃背景（backdrop-filter blur）
+  - Logo 心形图标添加脉冲动画
+
+### 新增
+- **落地页改版**：Hero 区域 + 特性卡片网格 + 内联注册/登录表单（取代弹窗 Modal）
+- **仪表盘欢迎栏**：显示头像、用户名、创作号、已点赞/已收赞统计
+- **FAQ 折叠面板**：点击展开/收起，带箭头旋转动画
+- **Loading 态**：任务/队列/日志三个 Tab 各自独立的加载动画
+- **空状态优化**：每个 Tab 有专属图标和提示文案
+- **Toast 通知**：从顶部移到底部，带边框颜色区分类型
+
+### 变更
+- 注册/登录从 Modal 弹窗改为页面内嵌表单，交互更流畅
+- 任务卡片重新设计：标签徽章 + 文章链接框 + 双按钮（去点赞/确认完成）
+- 队列项改为圆角序号 + 状态文字，不再使用表格行式布局
+- 日志项简化为 `giver -> receiver + 时间` 单行布局
+- 按钮体系统一：btn-primary / btn-secondary / btn-full / btn-confirm
+- CSS 变量重命名：--bg / --bg-card / --bg-hover / --border / --border-light
+- 移除 localStorage 存储 username 的逻辑，改用 Supabase session 恢复
+- 移除 15 秒自动刷新队列的 setInterval，改为 Tab 切换时懒加载
+- 页脚简化，添加版本号显示
+
+### 修复
+- 会话恢复逻辑简化：直接使用 Supabase session.user，不再需要 localStorage 中间层
+- 注册时正确写入 user.id 到 users 表（之前只写 username，未关联 auth user）
+
+---
+
 ## [v0.2.0] - 2026-07-03
 
 ### 修复
