@@ -1,7 +1,17 @@
 # 赞链 (ZanLian) 开发记录
 
 > 本文件记录所有已讨论和已实现的功能需求，供跨设备、跨会话恢复上下文使用。
-> 最后更新：2026-07-03 12:25
+> 当前版本：**v0.2.0**
+> 最后更新：2026-07-03
+
+---
+
+## 版本历史
+
+| 版本 | 日期 | 说明 |
+|------|------|------|
+| v0.1.0 | 2026-07-02 | 初始版本，完成核心功能开发 |
+| v0.2.0 | 2026-07-03 | 修复 Vue 渲染问题，清空数据库重建，修复邮箱验证链接 |
 
 ---
 
@@ -12,7 +22,7 @@
 核心思路：用户通过"马甲号"为他人点赞，自己的"创作号"排队等待回赞。双账号隔离，保护隐私，公平透明。
 
 - **GitHub**: https://github.com/makeloftergreat/zanlian
-- **Vercel**: https://zanlian.vercel.app
+- **线上地址**: https://zanlian.vercel.app
 - **Supabase**: https://zrxvibalglblsjbzlzut.supabase.co
 - **技术栈**: Vue 3 (CDN) + Supabase + Vercel
 - **费用**: 0 费用上线（Vercel 免费版 + Supabase 免费版）
@@ -33,6 +43,7 @@
 ### 2.2 用户系统
 - [x] 注册：马甲号用户名 + 创作号用户名 + 邮箱 + 密码
 - [x] 登录：邮箱 + 密码
+- [x] 邮箱验证：注册后发送验证邮件，点击链接确认
 - [x] 登录状态持久化（localStorage）
 - [x] 退出登录
 
@@ -144,8 +155,9 @@ CREATE INDEX idx_users_username ON users(username);
 ```
 
 ### 当前数据状态
-- **2026-07-03 数据库已清空**：users、tasks、queue 三张表全部 0 行，全新开始
+- **v0.2.0 数据库已清空重建**：users、tasks、queue 三张表全部 0 行，全新开始
 - 表结构保持不变（未 DROP/CREATE，仅 DELETE 了数据）
+- 已有 1 个测试用户注册成功（马甲号: aaa, 创作号: bbb）
 
 ---
 
@@ -172,9 +184,9 @@ CREATE INDEX idx_users_username ON users(username);
 
 ---
 
-## 六、已知问题
+## 六、已知问题与修复记录
 
-### 6.1 Vue 模板编译问题（已修复）
+### 6.1 Vue 模板编译问题（v0.2.0 已修复）
 - **现象**：页面显示 `{{ xxx }}` 原始模板文本，Vue 未正确渲染
 - **原因1**：`const supabase` 与 Supabase SDK 全局变量冲突，导致 JS 报错 `Identifier 'supabase' has already been declared`
 - **修复1**：改用 `const sb = window.supabase.createClient(...)`
@@ -184,14 +196,19 @@ CREATE INDEX idx_users_username ON users(username);
 - **修复3**：补上 `watch` 到解构列表
 - **状态**：已全部修复，线上 https://zanlian.vercel.app 正常渲染
 
-### 6.2 Supabase API Key 获取困难
+### 6.2 邮箱验证链接指向 localhost（v0.2.0 已修复）
+- **现象**：用户注册后收到验证邮件，点击链接跳转到 `http://localhost:3000` 而非线上地址
+- **原因**：Supabase Auth 默认 Site URL 为 `http://localhost:3000`
+- **修复**：在 Supabase Dashboard → Authentication → URL Configuration 中将 Site URL 改为 `https://zanlian.vercel.app`
+- **状态**：已修复
+
+### 6.3 Supabase API Key 获取困难
 - **现象**：新版 Supabase 控制台界面与旧版不同，找不到 anon key
 - **解决**：最终在 Project Settings → API 中找到
 - **注意**：如果 Supabase 更新界面，参考 docs/api.md 中的连接信息
 
-### 6.3 环境网络限制
-- 当前开发环境无法直接访问外网（curl 超时）
-- GitHub 推送偶尔会因网络问题失败，重试即可
+### 6.4 环境网络限制
+- GitHub HTTPS 推送偶尔超时，可通过 GitHub REST API 推送文件作为备选方案
 - Vercel 部署状态需用户在浏览器中确认
 
 ---
@@ -205,7 +222,7 @@ CREATE INDEX idx_users_username ON users(username);
 | Git 用户名 | makeloftergreat |
 | Git 邮箱 | makeloftergreat@users.noreply.github.com |
 | Node.js | 未安装（当前用 CDN 方式无需构建） |
-| Python | 已安装（用于本地预览） |
+| Python | 已安装（用于本地预览和数据库操作脚本） |
 
 ### 本地预览
 ```bash
@@ -219,6 +236,13 @@ python -m http.server 8080
 "C:\Program Files\Git\bin\git.exe" add -A
 "C:\Program Files\Git\bin\git.exe" commit -m "描述信息"
 "C:\Program Files\Git\bin\git.exe" push origin master
+```
+
+### 备选推送方式（网络不稳定时）
+通过 GitHub REST API 推送单个文件，绕过 git 协议：
+```python
+# 见 tmp/push_api.py
+# 使用 GitHub Contents API 上传文件
 ```
 
 ---
@@ -236,6 +260,8 @@ python -m http.server 8080
 | 2026-07-03 | 单文件 HTML 架构 | 简化部署，后续可拆分 |
 | 2026-07-03 | 数据库清空重建 | 清除旧测试数据，全新开始 |
 | 2026-07-03 | GitHub API 推送替代 git push | GitHub HTTPS 不稳定时，用 REST API 推送文件更可靠 |
+| 2026-07-03 | 使用 Vercel 子域名 zanlian.vercel.app | 暂不绑定自定义域名，先用 Vercel 默认域名 |
+| 2026-07-03 | 域名 jlccedu.ac.cn 暂不使用 | .ac.cn 域名绑定 Vercel 有限制，后续可考虑 |
 
 ---
 
@@ -243,14 +269,15 @@ python -m http.server 8080
 
 按优先级排序：
 
-1. **修复 Vercel 部署** — 确认线上版本 Vue 正常渲染 ✅ 已完成
-2. **测试注册登录流程** — 确认 Supabase Auth 正常工作
-3. **测试点赞流程** — 确认任务分配、排队、回赞完整链路
-4. **浏览器扩展** — 自动点赞，减少手动操作
-5. **VIP 配额系统** — 每日 3 次插队权，按赞数排序
-6. **数据统计面板** — 点赞趋势、回赞率
-7. **移动端优化** — 专门适配手机端
-8. **代码拆分** — 当 index.html 过大时拆分为多个文件
+1. ~~**修复 Vercel 部署** — 确认线上版本 Vue 正常渲染~~ ✅ v0.2.0 已完成
+2. ~~**修复邮箱验证链接** — Site URL 改为线上地址~~ ✅ v0.2.0 已完成
+3. **测试注册登录完整流程** — 确认邮箱验证、登录、退出全链路
+4. **测试点赞流程** — 确认任务分配、排队、回赞完整链路
+5. **浏览器扩展** — 自动点赞，减少手动操作
+6. **VIP 配额系统** — 每日 3 次插队权，按赞数排序
+7. **数据统计面板** — 点赞趋势、回赞率
+8. **移动端优化** — 专门适配手机端
+9. **代码拆分** — 当 index.html 过大时拆分为多个文件
 
 ---
 
@@ -281,5 +308,5 @@ python -m http.server 8080
 
 ### 5. 需要的信息
 - GitHub 账号：makeloftergreat
-- Supabase 项目：zrxvibalglblsjbzlzut
+- Supabase 项目：zrxvibalglblsjbzut
 - 本文件（DEV_LOG.md）包含所有上下文
