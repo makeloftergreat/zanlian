@@ -1,7 +1,7 @@
 # 赞链 (ZanLian) 开发记录
 
 > 本文件记录所有已讨论和已实现的功能需求，供跨设备、跨会话恢复上下文使用。
-> 最后更新：2026-07-03
+> 最后更新：2026-07-03 12:25
 
 ---
 
@@ -143,6 +143,10 @@ CREATE INDEX idx_tasks_status ON tasks(status);
 CREATE INDEX idx_users_username ON users(username);
 ```
 
+### 当前数据状态
+- **2026-07-03 数据库已清空**：users、tasks、queue 三张表全部 0 行，全新开始
+- 表结构保持不变（未 DROP/CREATE，仅 DELETE 了数据）
+
 ---
 
 ## 五、账号与密钥
@@ -170,11 +174,15 @@ CREATE INDEX idx_users_username ON users(username);
 
 ## 六、已知问题
 
-### 6.1 Vue 模板编译问题
+### 6.1 Vue 模板编译问题（已修复）
 - **现象**：页面显示 `{{ xxx }}` 原始模板文本，Vue 未正确渲染
-- **原因**：使用了 `vue.global.prod.js`（生产版）不支持运行时模板编译
-- **修复**：已改为 `vue.global.js`（完整版）
-- **状态**：已修复，但 Vercel 部署可能需要等 1-2 分钟生效
+- **原因1**：`const supabase` 与 Supabase SDK 全局变量冲突，导致 JS 报错 `Identifier 'supabase' has already been declared`
+- **修复1**：改用 `const sb = window.supabase.createClient(...)`
+- **原因2**：使用了 `vue.global.prod.js`（生产版）不支持运行时模板编译
+- **修复2**：改为 `vue.global.js`（完整版）
+- **原因3**：Vue 解构漏了 `watch`
+- **修复3**：补上 `watch` 到解构列表
+- **状态**：已全部修复，线上 https://zanlian.vercel.app 正常渲染
 
 ### 6.2 Supabase API Key 获取困难
 - **现象**：新版 Supabase 控制台界面与旧版不同，找不到 anon key
@@ -226,6 +234,8 @@ python -m http.server 8080
 | 2026-07-02 | 双账号隔离设计 | 保护创作号隐私，马甲号可见，创作号不可见 |
 | 2026-07-03 | 项目结构规范化 | 开源准备，方便跨设备协作 |
 | 2026-07-03 | 单文件 HTML 架构 | 简化部署，后续可拆分 |
+| 2026-07-03 | 数据库清空重建 | 清除旧测试数据，全新开始 |
+| 2026-07-03 | GitHub API 推送替代 git push | GitHub HTTPS 不稳定时，用 REST API 推送文件更可靠 |
 
 ---
 
@@ -233,7 +243,7 @@ python -m http.server 8080
 
 按优先级排序：
 
-1. **修复 Vercel 部署** — 确认线上版本 Vue 正常渲染
+1. **修复 Vercel 部署** — 确认线上版本 Vue 正常渲染 ✅ 已完成
 2. **测试注册登录流程** — 确认 Supabase Auth 正常工作
 3. **测试点赞流程** — 确认任务分配、排队、回赞完整链路
 4. **浏览器扩展** — 自动点赞，减少手动操作
