@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>赞链 · LOFTER 点赞互助平台</title>
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--surface3:#2e2e2e;--border:#333;--text:#e0e0e0;--text2:#999;--accent:#6c5ce7;--accent2:#a29bfe;--danger:#e74c3c;--success:#2ecc71;--warning:#f39c12}
@@ -299,7 +299,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 </div>
 
 <script>
-const { createApp, ref, reactive, computed, onMounted } = Vue;
+const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
 const sb = window.supabase.createClient(
   'https://zrxvibalglblsjbzlzut.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyeHZpYmFsZ2xibHNqYnpsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NjkxNTYsImV4cCI6MjA5ODU0NTE1Nn0.kZvWuvNgWo6LaLV19HIadbo3kSDP9mYys4gUUsmewzY'
