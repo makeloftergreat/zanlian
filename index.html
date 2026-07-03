@@ -7,525 +7,577 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--surface3:#2e2e2e;--border:#333;--text:#e0e0e0;--text2:#999;--accent:#6c5ce7;--accent2:#a29bfe;--danger:#e74c3c;--success:#2ecc71;--warning:#f39c12}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans SC",sans-serif;line-height:1.6}
+:root{
+  --bg:#0a0a0f;--bg-card:#13131a;--bg-hover:#1a1a25;--border:#25253a;--border-light:#303045;
+  --text:#e8e8f0;--text-secondary:#8888aa;--text-dim:#555570;
+  --accent:#ff5c5c;--accent-hover:#ff7575;--accent-glow:rgba(255,92,92,.3);
+  --success:#4ade80;--success-glow:rgba(74,222,128,.3);
+  --gold:#fbbf24;--gold-glow:rgba(251,191,36,.3);
+  --radius:16px;--transition:all .3s cubic-bezier(.4,0,.2,1);
+}
+body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
 [v-cloak]{display:none}
-.nav{position:fixed;top:0;left:0;right:0;height:60px;background:rgba(15,15,15,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);z-index:100;display:flex;align-items:center;padding:0 24px;justify-content:space-between}
-.nav-logo{font-size:20px;font-weight:700;cursor:pointer;color:var(--accent2)}
-.nav-logo span{color:var(--accent)}
-.nav-btns{display:flex;gap:12px;align-items:center}
-.nav-links{display:flex;gap:20px;list-style:none}
-.nav-links a{color:var(--text2);text-decoration:none;font-size:14px;cursor:pointer;transition:color .2s}
-.nav-links a:hover{color:var(--text)}
-.btn{padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-primary:hover{background:var(--accent2)}
-.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
-.btn-outline:hover{border-color:var(--accent)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.hero{text-align:center;padding:120px 24px 80px;max-width:800px;margin:0 auto}
-.hero h1{font-size:48px;margin-bottom:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero p{font-size:18px;color:var(--text2);margin-bottom:32px}
-.section{max-width:900px;margin:0 auto;padding:60px 24px}
-.section h2{font-size:32px;margin-bottom:24px;text-align:center}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
-.card h3{font-size:18px;margin-bottom:12px;color:var(--accent2)}
-.card p{color:var(--text2);font-size:15px}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:24px}
-.step{background:var(--surface2);border-radius:8px;padding:20px;text-align:center}
-.step-num{font-size:24px;font-weight:700;color:var(--accent);margin-bottom:8px}
-.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin-bottom:8px}
-.faq-item h4{font-size:15px;margin-bottom:6px;color:var(--text)}
-.faq-item p{font-size:14px;color:var(--text2)}
-.footer{text-align:center;padding:40px 24px;color:var(--text2);font-size:13px;border-top:1px solid var(--border);margin-top:60px}
-.app-container{padding-top:80px;max-width:900px;margin:0 auto;padding-left:24px;padding-right:24px}
-.stats-row{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
-.stat-box{flex:1;min-width:120px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
-.stat-num{font-size:28px;font-weight:700;color:var(--accent2)}
-.stat-label{font-size:12px;color:var(--text2);margin-top:4px}
-.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
-.tab-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;font-size:14px;transition:all .2s}
-.tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.task-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px}
-.task-info{display:flex;flex-direction:column;gap:12px;margin:16px 0}
-.task-info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
-.task-info-label{color:var(--text2);font-size:14px}
-.task-info-value{font-weight:600}
-.task-steps{background:var(--surface2);border-radius:8px;padding:16px;margin:16px 0}
-.task-steps ol{padding-left:20px;color:var(--text2);font-size:14px}
-.task-steps li{margin-bottom:8px}
-.task-steps li strong{color:var(--text)}
-.link-btn{display:inline-block;color:var(--accent2);text-decoration:none;font-size:14px;padding:6px 12px;border:1px solid var(--border);border-radius:6px;transition:all .2s}
-.link-btn:hover{border-color:var(--accent)}
-.queue-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:8px}
-.queue-pos{font-size:20px;font-weight:700;color:var(--accent);min-width:32px;text-align:center}
-.queue-name{flex:1;font-size:15px}
-.queue-status{font-size:12px;padding:4px 8px;border-radius:4px}
-.status-waiting{background:rgba(243,156,18,.15);color:var(--warning)}
-.status-done{background:rgba(46,204,113,.15);color:var(--success)}
-.log-item{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:14px}
-.log-arrow{color:var(--accent)}
-.log-time{margin-left:auto;color:var(--text2);font-size:12px}
-.empty{text-align:center;padding:40px;color:var(--text2)}
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:200}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:400px;width:90%}
-.modal h3{font-size:22px;margin-bottom:20px;text-align:center}
-.modal-tabs{display:flex;gap:8px;margin-bottom:20px}
-.modal-tab{flex:1;padding:8px;text-align:center;border-radius:8px;cursor:pointer;font-size:14px;border:1px solid var(--border);transition:all .2s}
-.modal-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Nav */
+.navbar{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+.navbar .logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800}
+.navbar .logo .heart{color:var(--accent);font-size:24px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.navbar .nav-right{display:flex;align-items:center;gap:16px}
+.navbar .user-info{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text-secondary)}
+.navbar .user-info .badge{background:var(--accent);color:#fff;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600}
+.navbar .btn-logout{background:none;border:1px solid var(--border-light);color:var(--text-secondary);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;transition:var(--transition)}
+.navbar .btn-logout:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Container */
+.container{max-width:640px;margin:0 auto;padding:20px 16px 60px}
+
+/* Hero (landing) */
+.hero{text-align:center;padding:48px 20px 32px}
+.hero .icon{font-size:56px;margin-bottom:16px;animation:pulse 2s ease-in-out infinite}
+.hero h1{font-size:28px;font-weight:800;margin-bottom:12px;background:linear-gradient(135deg,var(--accent),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero .subtitle{color:var(--text-secondary);font-size:16px;margin-bottom:8px}
+.hero .desc{color:var(--text-dim);font-size:14px;margin-bottom:28px;line-height:1.8}
+.hero .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--accent);color:#fff;border:none;padding:12px 28px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:var(--transition);box-shadow:0 4px 20px var(--accent-glow)}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-2px);box-shadow:0 6px 28px var(--accent-glow)}
+.btn-secondary{background:var(--bg-card);color:var(--text);border:1px solid var(--border-light);padding:12px 28px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:var(--transition)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);background:var(--bg-hover)}
+
+/* Features grid */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:28px 0}
+.feature-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;transition:var(--transition)}
+.feature-card:hover{border-color:var(--border-light);background:var(--bg-hover);transform:translateY(-2px)}
+.feature-card .icon{font-size:32px;margin-bottom:10px}
+.feature-card h3{font-size:14px;font-weight:700;margin-bottom:6px}
+.feature-card p{font-size:12px;color:var(--text-secondary);line-height:1.5}
+
+/* Auth forms */
+.auth-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:32px 24px;margin:24px 0;max-width:420px;margin-left:auto;margin-right:auto}
+.auth-box h2{font-size:22px;font-weight:800;margin-bottom:6px;text-align:center}
+.auth-box .auth-sub{font-size:14px;color:var(--text-secondary);text-align:center;margin-bottom:24px}
 .form-group{margin-bottom:16px}
-.form-group label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px}
-.form-group input{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none}
-.form-group input:focus{border-color:var(--accent)}
-.form-error{color:var(--danger);font-size:13px;margin-bottom:12px;text-align:center}
-.form-success{color:var(--success);font-size:13px;margin-bottom:12px;text-align:center}
-.modal .btn{width:100%;padding:12px;font-size:16px}
-.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:300;animation:fadeIn .3s}
-.toast-inner{padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600}
-.toast-info{background:var(--accent);color:#fff}
-.toast-success{background:var(--success);color:#fff}
-.toast-error{background:var(--danger);color:#fff}
-@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-@media(max-width:640px){
-  .nav-links{display:none}
-  .hero h1{font-size:32px}
-  .hero p{font-size:15px}
-  .stats-row{flex-direction:column}
-  .section{padding:40px 16px}
+.form-group label{display:block;font-size:13px;color:var(--text-secondary);margin-bottom:6px;font-weight:600}
+.form-group input{width:100%;background:var(--bg);border:1px solid var(--border-light);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;transition:var(--transition)}
+.form-group input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.form-group .hint{font-size:12px;color:var(--text-dim);margin-top:4px}
+.btn-full{width:100%;background:var(--accent);color:#fff;border:none;padding:13px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:var(--transition);box-shadow:0 4px 16px var(--accent-glow)}
+.btn-full:hover{background:var(--accent-hover)}
+.auth-toggle{text-align:center;margin-top:16px;font-size:14px;color:var(--text-secondary)}
+.auth-toggle a{cursor:pointer;font-weight:600}
+.auth-error{background:rgba(255,92,92,.1);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);margin-bottom:16px}
+
+/* Dashboard */
+.welcome-bar{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.welcome-bar .left{display:flex;align-items:center;gap:12px}
+.welcome-bar .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--gold));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.welcome-bar .info h3{font-size:16px;font-weight:700}
+.welcome-bar .info p{font-size:13px;color:var(--text-secondary)}
+.welcome-bar .stats{display:flex;gap:16px}
+.welcome-bar .stat{text-align:center}
+.welcome-bar .stat .num{font-size:22px;font-weight:800}
+.welcome-bar .stat .num.given{color:var(--accent)}
+.welcome-bar .stat .num.received{color:var(--success)}
+.welcome-bar .stat .label{font-size:11px;color:var(--text-dim);margin-top:2px}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:16px}
+.tab{flex:1;padding:10px;border-radius:8px;text-align:center;font-size:14px;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:var(--transition);border:none;background:none}
+.tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 12px var(--accent-glow)}
+.tab:not(.active):hover{background:var(--bg-hover);color:var(--text)}
+
+/* Task card */
+.task-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;transition:var(--transition)}
+.task-card:hover{border-color:var(--border-light)}
+.task-card .task-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.task-card .task-badge{background:var(--accent-glow);color:var(--accent);padding:4px 12px;border-radius:8px;font-size:12px;font-weight:600}
+.task-card .task-status{font-size:12px;color:var(--text-dim)}
+.task-card .task-url-box{background:var(--bg);border:1px solid var(--border-light);border-radius:10px;padding:14px;margin-bottom:14px}
+.task-card .task-url-box .label{font-size:12px;color:var(--text-dim);margin-bottom:6px}
+.task-card .task-url-box .url{font-size:13px;color:var(--accent);word-break:break-all;line-height:1.5}
+.task-card .task-actions{display:flex;gap:10px}
+.task-card .btn-go{flex:1;background:var(--accent);color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:var(--transition);text-align:center;display:block}
+.task-card .btn-go:hover{background:var(--accent-hover)}
+.task-card .btn-confirm{flex:1;background:var(--success);color:#0a0a0f;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:var(--transition)}
+.task-card .btn-confirm:hover{filter:brightness(1.1)}
+.task-card .task-info{font-size:13px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6}
+.task-card .task-info span{color:var(--text);font-weight:600}
+
+/* Empty state */
+.empty-state{text-align:center;padding:48px 20px;color:var(--text-dim)}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.empty-state h3{font-size:16px;font-weight:600;margin-bottom:8px;color:var(--text-secondary)}
+.empty-state p{font-size:14px;line-height:1.6}
+
+/* Queue */
+.queue-list{display:flex;flex-direction:column;gap:10px}
+.queue-item{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;transition:var(--transition)}
+.queue-item:hover{border-color:var(--border-light);background:var(--bg-hover)}
+.queue-item .pos{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;margin-right:12px}
+.queue-item .pos.next{background:var(--accent-glow);color:var(--accent)}
+.queue-item .pos.waiting{background:var(--bg-hover);color:var(--text-dim)}
+.queue-item .pos.done{background:var(--success-glow);color:var(--success)}
+.queue-item .info{flex:1}
+.queue-item .info .name{font-size:14px;font-weight:600}
+.queue-item .info .status{font-size:12px;color:var(--text-dim);margin-top:2px}
+.queue-item .info .status.active{color:var(--success)}
+.queue-item .info .status.waiting{color:var(--gold)}
+
+/* Log */
+.log-list{display:flex;flex-direction:column;gap:8px}
+.log-item{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:13px}
+.log-item .arrow{color:var(--text-dim)}
+.log-item .from{color:var(--accent);font-weight:600}
+.log-item .to{color:var(--text-secondary)}
+.log-item .time{margin-left:auto;color:var(--text-dim);font-size:12px;white-space:nowrap}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid var(--border-light);border-radius:12px;padding:14px 24px;font-size:14px;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,.4);transition:var(--transition)}
+.toast.success{border-color:var(--success);color:var(--success)}
+.toast.error{border-color:var(--accent);color:var(--accent)}
+.toast.info{border-color:var(--gold);color:var(--gold)}
+
+/* Loading */
+.loading{text-align:center;padding:40px;color:var(--text-dim)}
+.loading .spinner{display:inline-block;width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* FAQ */
+.faq-item{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden}
+.faq-item .q{padding:16px 18px;font-size:14px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:var(--transition)}
+.faq-item .q:hover{background:var(--bg-hover)}
+.faq-item .q .arrow{transition:transform .3s}
+.faq-item .q .arrow.open{transform:rotate(180deg)}
+.faq-item .a{max-height:0;overflow:hidden;transition:max-height .3s ease;font-size:13px;color:var(--text-secondary);line-height:1.7}
+.faq-item .a.open{max-height:300px;padding:0 18px 16px}
+
+/* Footer */
+.footer{text-align:center;padding:32px 16px;color:var(--text-dim);font-size:13px}
+.footer a{color:var(--text-secondary)}
+.footer .divider{margin:0 8px;color:var(--border-light)}
+
+@media(max-width:480px){
+  .hero h1{font-size:22px}
+  .hero .desc{font-size:13px}
+  .welcome-bar{flex-direction:column;gap:14px}
+  .welcome-bar .stats{width:100%;justify-content:center}
+  .features{grid-template-columns:1fr 1fr}
+  .task-card .task-actions{flex-direction:column}
 }
 </style>
 </head>
 <body>
 <div id="app" v-cloak>
-  <!-- Toast -->
-  <div class="toast" v-if="toast.show">
-    <div class="toast-inner" :class="'toast-' + toast.type">{{ toast.msg }}</div>
-  </div>
 
-  <!-- Nav -->
-  <nav class="nav">
-    <div class="nav-logo" @click="showLanding = !user">♥ 赞<span>链</span></div>
-    <div class="nav-btns">
-      <template v-if="!user">
-        <ul class="nav-links">
-          <li><a @click="scrollTo('mechanism')">机制</a></li>
-          <li><a @click="scrollTo('dual')">双账号</a></li>
-          <li><a @click="scrollTo('flow')">上手指南</a></li>
-          <li><a @click="scrollTo('safety')">安全</a></li>
-          <li><a @click="scrollTo('faq')">FAQ</a></li>
-        </ul>
-        <button class="btn btn-primary" @click="showAuth = true">开始使用</button>
+<!-- Navbar -->
+<div class="navbar">
+  <div class="logo">
+    <span class="heart">&#10084;</span>
+    <span>赞链</span>
+  </div>
+  <div class="nav-right" v-if="user">
+    <div class="user-info">
+      <span>{{ profile.username }}</span>
+      <span class="badge">{{ profile.today_given }}/20</span>
+    </div>
+    <button class="btn-logout" @click="logout">退出</button>
+  </div>
+</div>
+
+<!-- Not logged in -->
+<template v-if="!user">
+  <!-- Hero -->
+  <div class="container">
+    <div class="hero">
+      <div class="icon">&#10084;</div>
+      <h1>赞链 · LOFTER 点赞互助</h1>
+      <p class="subtitle">先付后得 · 公平排队 · 双账号隔离</p>
+      <p class="desc">用马甲号帮别人点赞，你的创作号排队获得回赞。<br>马甲号和创作号完全隔离，保护你的隐私。</p>
+      <div class="actions">
+        <button class="btn-primary" @click="showAuth='register'">开始使用</button>
+        <button class="btn-secondary" @click="showAuth='login'">登录</button>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="features">
+      <div class="feature-card">
+        <div class="icon">&#128104;</div>
+        <h3>双账号隔离</h3>
+        <p>马甲号点赞，创作号收赞，互不暴露</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#128279;</div>
+        <h3>公平排队</h3>
+        <p>先来后到，位置透明可查</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#128202;</div>
+        <h3>溯源日志</h3>
+        <p>每次点赞都有记录，只显示马甲号</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#128737;</div>
+        <h3>每日上限</h3>
+        <p>每天最多 20 次，防止滥用</p>
+      </div>
+    </div>
+
+    <!-- Auth -->
+    <div class="auth-box" v-if="showAuth">
+      <h2>{{ showAuth === 'register' ? '注册赞链' : '登录赞链' }}</h2>
+      <p class="auth-sub">{{ showAuth === 'register' ? '创建账号，开始互助点赞' : '欢迎回来' }}</p>
+      <div class="auth-error" v-if="authError">{{ authError }}</div>
+      <template v-if="showAuth === 'register'">
+        <div class="form-group">
+          <label>马甲号（用于点赞）</label>
+          <input v-model="regForm.username" type="text" placeholder="你的 LOFTER 马甲用户名">
+          <div class="hint">用这个号去给别人点赞</div>
+        </div>
+        <div class="form-group">
+          <label>创作号（用于收赞）</label>
+          <input v-model="regForm.main_account" type="text" placeholder="你的 LOFTER 创作用户名">
+          <div class="hint">这个号的文章将获得回赞</div>
+        </div>
+        <div class="form-group">
+          <label>邮箱</label>
+          <input v-model="regForm.email" type="email" placeholder="用于注册和登录">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input v-model="regForm.password" type="password" placeholder="至少 6 位">
+        </div>
+        <button class="btn-full" @click="register" :disabled="loading">
+          {{ loading ? '注册中...' : '注册' }}
+        </button>
       </template>
       <template v-else>
-        <button class="btn btn-outline" @click="showLanding = true">官网</button>
-        <button class="btn btn-outline" @click="showLanding = false">仪表盘</button>
-        <button class="btn btn-primary" @click="logout">退出</button>
+        <div class="form-group">
+          <label>邮箱</label>
+          <input v-model="loginForm.email" type="email" placeholder="注册时的邮箱">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input v-model="loginForm.password" type="password" placeholder="登录密码">
+        </div>
+        <button class="btn-full" @click="login" :disabled="loading">
+          {{ loading ? '登录中...' : '登录' }}
+        </button>
       </template>
-    </div>
-  </nav>
-
-  <!-- Landing Page -->
-  <div v-if="showLanding || !user">
-    <!-- Hero -->
-    <div class="hero">
-      <h1>赞链</h1>
-      <p>LOFTER 点赞互助平台 — 先付后得，公平排队，双账号隔离保护隐私</p>
-      <button class="btn btn-primary" style="font-size:16px;padding:12px 32px" @click="showAuth = true">开始使用</button>
-    </div>
-
-    <!-- 机制 -->
-    <div class="section" id="mechanism">
-      <h2>核心机制</h2>
-      <div class="card">
-        <h3>先付后得</h3>
-        <p>你必须先给他人点赞，自己的创作号才能进入排队队列。付出是获得的前提。</p>
-      </div>
-      <div class="card">
-        <h3>先来后到</h3>
-        <p>排队按加入顺序，位置透明可查。排在前面的人先获得回赞。</p>
-      </div>
-      <div class="card">
-        <h3>溯源日志</h3>
-        <p>每一次点赞都有记录，格式为"马甲A → 马甲B"，只显示马甲号，不暴露创作号。</p>
-      </div>
-    </div>
-
-    <!-- 双账号 -->
-    <div class="section" id="dual">
-      <h2>双账号隔离</h2>
-      <div class="card">
-        <h3>马甲号 vs 创作号</h3>
-        <p><strong>马甲号</strong>：用于给他人点赞，其他用户可以看到你的马甲号。</p>
-        <p><strong>创作号</strong>：用于接收点赞，仅你自己可见。其他用户看不到你的创作号。</p>
-        <p>两者完全隔离，保护你的创作号隐私。</p>
-      </div>
-    </div>
-
-    <!-- 上手指南 -->
-    <div class="section" id="flow">
-      <h2>上手指南</h2>
-      <div class="steps">
-        <div class="step"><div class="step-num">1</div><h3>注册</h3><p>填写马甲号、创作号、邮箱和密码</p></div>
-        <div class="step"><div class="step-num">2</div><h3>领任务</h3><p>系统自动分配一个待点赞的文章</p></div>
-        <div class="step"><div class="step-num">3</div><h3>去点赞</h3><p>用马甲号打开文章，点红心</p></div>
-        <div class="step"><div class="step-num">4</div><h3>确认</h3><p>回到赞链点击"确认完成"</p></div>
-        <div class="step"><div class="step-num">5</div><h3>排队</h3><p>你的创作号自动排入队列</p></div>
-        <div class="step"><div class="step-num">6</div><h3>收赞</h3><p>轮到你时，他人会给你点赞</p></div>
-      </div>
-    </div>
-
-    <!-- 安全 -->
-    <div class="section" id="safety">
-      <h2>安全保障</h2>
-      <div class="card">
-        <h3>每日上限</h3>
-        <p>每天最多点赞 20 次，防止滥用和异常行为。</p>
-      </div>
-      <div class="card">
-        <h3>隐私保护</h3>
-        <p>创作号信息仅自己可见，溯源日志中不出现任何创作号。</p>
+      <div class="auth-toggle">
+        {{ showAuth === 'register' ? '已有账号？' : '没有账号？' }}
+        <a @click="showAuth = showAuth === 'register' ? 'login' : 'register'">
+          {{ showAuth === 'register' ? '去登录' : '去注册' }}
+        </a>
       </div>
     </div>
 
     <!-- FAQ -->
-    <div class="section" id="faq">
-      <h2>常见问题</h2>
-      <div class="faq-item"><h4>赞链会知道我的密码吗？</h4><p>不会。密码由 Supabase Auth 加密存储，赞链无法看到你的明文密码。</p></div>
-      <div class="faq-item"><h4>可以只收赞不点赞吗？</h4><p>不可以。必须先点赞，创作号才能进入排队队列。</p></div>
-      <div class="faq-item"><h4>每天能点多少次？</h4><p>每天最多 20 次，第二天自动重置。</p></div>
-      <div class="faq-item"><h4>排到第一位就一定能收到赞吗？</h4><p>当有新用户来点赞时，系统会优先把任务分配给排队第一位的人。</p></div>
-    </div>
-
-    <div class="footer">
-      <p>赞链 ZanLian · LOFTER 点赞互助平台 · <a href="https://github.com/makeloftergreat/zanlian" style="color:var(--accent2)">GitHub</a></p>
+    <div style="margin-top:28px">
+      <div class="faq-item" v-for="(f,i) in faqs" :key="i">
+        <div class="q" @click="faqOpen = faqOpen === i ? -1 : i">
+          <span>{{ f.q }}</span>
+          <span class="arrow" :class="{open: faqOpen === i}">&#9660;</span>
+        </div>
+        <div class="a" :class="{open: faqOpen === i}">{{ f.a }}</div>
+      </div>
     </div>
   </div>
+</template>
 
-  <!-- Dashboard -->
-  <div v-if="user && !showLanding" class="app-container">
-    <!-- Stats -->
-    <div class="stats-row">
-      <div class="stat-box"><div class="stat-num">{{ userStats.given }}</div><div class="stat-label">已点赞</div></div>
-      <div class="stat-box"><div class="stat-num">{{ userStats.received }}</div><div class="stat-label">获得赞</div></div>
-      <div class="stat-box"><div class="stat-num">{{ userStats.today_given }}/20</div><div class="stat-label">今日点赞</div></div>
+<!-- Logged in -->
+<template v-else>
+  <div class="container">
+    <!-- Welcome -->
+    <div class="welcome-bar">
+      <div class="left">
+        <div class="avatar">{{ profile.username ? profile.username[0].toUpperCase() : '?' }}</div>
+        <div class="info">
+          <h3>{{ profile.username }}</h3>
+          <p>马甲号 · 创作号：{{ profile.main_account }}</p>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="num given">{{ profile.given_count }}</div>
+          <div class="label">已点赞</div>
+        </div>
+        <div class="stat">
+          <div class="num received">{{ profile.received_count }}</div>
+          <div class="label">已收赞</div>
+        </div>
+      </div>
     </div>
 
     <!-- Tabs -->
     <div class="tabs">
-      <button class="tab-btn" :class="{active: currentTab==='task'}" @click="currentTab='task'">📋 当前任务</button>
-      <button class="tab-btn" :class="{active: currentTab==='queue'}" @click="currentTab='queue'">📊 排队队列</button>
-      <button class="tab-btn" :class="{active: currentTab==='log'}" @click="currentTab='log'">📜 溯源日志</button>
+      <button class="tab" :class="{active: tab==='task'}" @click="tab='task'">点赞任务</button>
+      <button class="tab" :class="{active: tab==='queue'}" @click="tab='queue'">排队队列</button>
+      <button class="tab" :class="{active: tab==='log'}" @click="tab='log'">溯源日志</button>
     </div>
 
-    <!-- Task Tab -->
-    <div v-if="currentTab==='task'">
-      <div v-if="currentTask" class="task-card">
-        <h3 style="margin-bottom:8px">📋 当前任务</h3>
-        <p style="color:var(--text2);font-size:14px;margin-bottom:16px">去给对方创作号的这篇文章点赞</p>
-        <div class="task-info">
-          <div class="task-info-row"><span class="task-info-label">对方马甲</span><span class="task-info-value">{{ currentTask.giver_username }}</span></div>
-          <div class="task-info-row"><span class="task-info-label">文章链接</span><a :href="currentTask.article_url" target="_blank" class="link-btn">🔗 打开文章</a></div>
-        </div>
-        <div class="task-steps">
-          <ol>
-            <li><strong>打开链接</strong>，用你的马甲号 LOFTER 账号登录并点赞</li>
-            <li><strong>回到这里</strong>，点击下方按钮确认已完成点赞</li>
-          </ol>
-        </div>
-        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:16px" :disabled="liking" @click="confirmLike">
-          {{ liking ? '⏳ 处理中...' : (userStats.today_given >= 20 ? '今日任务已达上限' : '✅ 我已点赞，确认完成') }}
-        </button>
-        <p v-if="userStats.today_given >= 20" style="text-align:center;color:var(--warning);font-size:13px;margin-top:8px">你今天的点赞已达上限（20次），明天再来吧！</p>
+    <!-- Task tab -->
+    <div v-if="tab==='task'">
+      <div v-if="loadingTask" class="loading">
+        <div class="spinner"></div>
+        <p>加载任务中...</p>
       </div>
-      <div v-else class="task-card">
-        <div v-if="loadingTask" class="empty">⏳ 正在查找可分配的任务...</div>
-        <div v-else class="empty">
-          <p style="font-size:32px;margin-bottom:8px">✅</p>
-          <p>暂时没有待处理的任务</p>
-          <p style="font-size:13px;margin-top:4px">队列中所有人已完成，稍后再来看看吧</p>
+      <template v-else>
+        <div class="task-card" v-if="currentTask">
+          <div class="task-header">
+            <span class="task-badge">待点赞</span>
+            <span class="task-status">任务 #{{ currentTask.id }}</span>
+          </div>
+          <div class="task-info">
+            为 <span>{{ currentTask.target_user }}</span> 的文章点赞<br>
+            完成后你的创作号 <span>{{ profile.main_account }}</span> 将排入队列
+          </div>
+          <div class="task-url-box">
+            <div class="label">文章链接</div>
+            <div class="url">{{ currentTask.article_url }}</div>
+          </div>
+          <div class="task-actions">
+            <a :href="currentTask.article_url" target="_blank" class="btn-go">去点赞</a>
+            <button class="btn-confirm" @click="confirmTask">确认完成</button>
+          </div>
         </div>
-      </div>
+        <div class="empty-state" v-else>
+          <div class="icon">&#127881;</div>
+          <h3>暂无可用任务</h3>
+          <p v-if="profile.today_given >= 20">今日点赞已达上限（20/20），明天再来吧</p>
+          <p v-else>当前没有待点赞的文章，请稍后再来</p>
+        </div>
+      </template>
     </div>
 
-    <!-- Queue Tab -->
-    <div v-if="currentTab==='queue'">
-      <h3 style="margin-bottom:8px">📊 排队队列</h3>
-      <p style="color:var(--text2);font-size:14px;margin-bottom:16px">先来后到，位置透明。你的创作号排到第一位时，将获得一次回赞。</p>
-      <div v-if="queueItems.length === 0" class="empty">📭 队列为空</div>
-      <div v-for="(item, i) in queueItems" :key="item.id" class="queue-item">
-        <div class="queue-pos">{{ i + 1 }}</div>
-        <div class="queue-name">{{ item.is_you ? '你的创作号 (你)' : item.mask_name }}</div>
-        <div class="queue-status" :class="item.status === 'waiting' ? 'status-waiting' : 'status-done'">{{ item.status === 'waiting' ? '等待中' : '已完成' }}</div>
+    <!-- Queue tab -->
+    <div v-if="tab==='queue'">
+      <div v-if="queueLoading" class="loading">
+        <div class="spinner"></div>
+        <p>加载队列中...</p>
       </div>
+      <template v-else>
+        <div class="queue-list" v-if="queue.length > 0">
+          <div class="queue-item" v-for="(item, i) in queue" :key="item.id">
+            <div class="pos" :class="item.status">{{ item.position }}</div>
+            <div class="info">
+              <div class="name">{{ item.username }}</div>
+              <div class="status" :class="item.status">{{ item.status === 'done' ? '已完成' : item.status === 'active' ? '正在收赞' : '排队中' }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="empty-state" v-else>
+          <div class="icon">&#128202;</div>
+          <h3>队列为空</h3>
+          <p>完成点赞任务后，你的创作号将排入队列</p>
+        </div>
+      </template>
     </div>
 
-    <!-- Log Tab -->
-    <div v-if="currentTab==='log'">
-      <h3 style="margin-bottom:8px">📜 溯源日志</h3>
-      <p style="color:var(--text2);font-size:14px;margin-bottom:16px">只显示马甲号，不暴露任何创作号信息。</p>
-      <div v-if="logItems.length === 0" class="empty">📭 暂无点赞记录</div>
-      <div v-for="item in logItems" :key="item.id" class="log-item">
-        <span>{{ item.from_username }}</span>
-        <span class="log-arrow">→</span>
-        <span>{{ item.to_username }}</span>
-        <span class="log-time">{{ item.time }}</span>
+    <!-- Log tab -->
+    <div v-if="tab==='log'">
+      <div v-if="logLoading" class="loading">
+        <div class="spinner"></div>
+        <p>加载日志中...</p>
       </div>
+      <template v-else>
+        <div class="log-list" v-if="logs.length > 0">
+          <div class="log-item" v-for="log in logs" :key="log.id">
+            <span class="from">{{ log.giver }}</span>
+            <span class="arrow">-></span>
+            <span class="to">{{ log.receiver }}</span>
+            <span class="time">{{ formatTime(log.created_at) }}</span>
+          </div>
+        </div>
+        <div class="empty-state" v-else>
+          <div class="icon">&#128221;</div>
+          <h3>暂无日志</h3>
+          <p>点赞记录将显示在这里</p>
+        </div>
+      </template>
     </div>
   </div>
+</template>
 
-  <!-- Auth Modal -->
-  <div class="modal-overlay" v-if="showAuth" @click.self="showAuth = false">
-    <div class="modal">
-      <h3>{{ authMode === 'login' ? '登录' : '注册' }}</h3>
-      <div class="modal-tabs">
-        <div class="modal-tab" :class="{active: authMode==='login'}" @click="authMode='login'">登录</div>
-        <div class="modal-tab" :class="{active: authMode==='register'}" @click="authMode='register'">注册</div>
-      </div>
-      <div v-if="authError" class="form-error">{{ authError }}</div>
-      <div v-if="authSuccess" class="form-success">{{ authSuccess }}</div>
-      <div v-if="authMode === 'register'">
-        <div class="form-group"><label>马甲号（用于点赞）</label><input v-model="authUser.username" placeholder="你的马甲号LOFTER用户名"></div>
-        <div class="form-group"><label>创作号（用于收赞）</label><input v-model="authUser.mainAccount" placeholder="你的创作号LOFTER用户名"></div>
-      </div>
-      <div v-else>
-        <div class="form-group"><label>马甲号</label><input v-model="authUser.username" placeholder="你的马甲号LOFTER用户名"></div>
-      </div>
-      <div class="form-group"><label>邮箱</label><input v-model="authUser.email" type="email" placeholder="your@email.com"></div>
-      <div class="form-group"><label>密码</label><input v-model="authUser.password" type="password" placeholder="至少6位"></div>
-      <button class="btn btn-primary" :disabled="authLoading" @click="handleAuth">{{ authLoading ? '处理中...' : (authMode === 'login' ? '登录' : '注册') }}</button>
-    </div>
-  </div>
+<!-- Toast -->
+<div class="toast" :class="toast.type" v-if="toast.show">{{ toast.msg }}</div>
+
+<!-- Footer -->
+<div class="footer">
+  赞链 v0.2.0
+  <span class="divider">|</span>
+  <a href="https://github.com/makeloftergreat/zanlian" target="_blank">GitHub</a>
+  <span class="divider">|</span>
+  LOFTER 点赞互助平台
+</div>
+
 </div>
 
 <script>
 const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
-const sb = window.supabase.createClient(
-  'https://zrxvibalglblsjbzlzut.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyeHZpYmFsZ2xibHNqYnpsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NjkxNTYsImV4cCI6MjA5ODU0NTE1Nn0.kZvWuvNgWo6LaLV19HIadbo3kSDP9mYys4gUUsmewzY'
-);
+const sb = window.supabase.createClient('https://zrxvibalglblsjbzlzut.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyeHZpYmFsZ2xibHNqYnpsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NjkxNTYsImV4cCI6MjA5ODU0NTE1Nn0.kZvWuvNgWo6LaLV19HIadbo3kSDP9mYys4gUUsmewzY');
 
 createApp({
   setup() {
     const user = ref(null);
-    const showLanding = ref(true);
-    const userStats = reactive({ given: 0, received: 0, today_given: 0 });
-    const currentTab = ref('task');
-    const currentTask = ref(null);
-    const queueItems = ref([]);
-    const logItems = ref([]);
+    const loading = ref(false);
     const loadingTask = ref(false);
-    const liking = ref(false);
-    const showAuth = ref(false);
-    const authMode = ref('login');
+    const queueLoading = ref(false);
+    const logLoading = ref(false);
+    const showAuth = ref(null);
     const authError = ref('');
-    const authSuccess = ref('');
-    const authLoading = ref(false);
-    const authUser = reactive({ username: '', mainAccount: '', email: '', password: '' });
+    const tab = ref('task');
+    const faqOpen = ref(-1);
+    const currentTask = ref(null);
+    const queue = ref([]);
+    const logs = ref([]);
     const toast = reactive({ show: false, msg: '', type: 'info' });
-    let toastTimer = null;
 
-    function showToast(msg, type) {
-      toast.msg = msg; toast.type = type || 'info'; toast.show = true;
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => { toast.show = false; }, 3000);
+    const regForm = reactive({ username: '', main_account: '', email: '', password: '' });
+    const loginForm = reactive({ email: '', password: '' });
+    const profile = reactive({ username: '', main_account: '', given_count: 0, received_count: 0, today_given: 0, last_given_date: '' });
+
+    const faqs = [
+      { q: '马甲号和创作号有什么区别？', a: '马甲号是你用来给别人点赞的账号，创作号是你发布原创内容、需要获得点赞的账号。两者完全隔离，互不暴露。' },
+      { q: '每天最多能点赞多少次？', a: '每天最多 20 次，防止滥用。每天 0 点重置计数。' },
+      { q: '多久能收到回赞？', a: '取决于队列长度和你前面有多少人。排队按先来后到，位置透明可查。' },
+      { q: '会泄露我的创作号吗？', a: '不会。溯源日志中只显示马甲号，创作号信息仅你自己可见。' },
+      { q: '点赞后对方怎么知道是我点的？', a: '系统会记录"马甲A -> 创作B"的溯源关系，你帮别人点赞后，对方会在溯源日志中看到你的马甲号。' }
+    ];
+
+    function showToast(msg, type = 'info') {
+      toast.msg = msg; toast.type = type; toast.show = true;
+      setTimeout(() => { toast.show = false; }, 3000);
     }
 
-    function scrollTo(id) {
-      document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
-    }
-
-    async function handleAuth() {
-      authError.value = ''; authSuccess.value = '';
-      if (!authUser.email || !authUser.password || !authUser.username) {
-        authError.value = '请填写所有字段'; return;
-      }
-      if (authUser.password.length < 6) {
-        authError.value = '密码至少6位'; return;
-      }
-      authLoading.value = true;
-      try {
-        if (authMode.value === 'register') {
-          if (!authUser.mainAccount) { authError.value = '请填写创作号'; authLoading.value = false; return; }
-          const { data, error } = await sb.auth.signUp({ email: authUser.email, password: authUser.password });
-          if (error) { authError.value = error.message; authLoading.value = false; return; }
-          const { error: dbError } = await sb.from('users').insert({
-            username: authUser.username,
-            main_account: authUser.mainAccount,
-            given_count: 0, received_count: 0, today_given: 0,
-            last_given_date: new Date().toISOString().split('T')[0]
-          });
-          if (dbError) { authError.value = dbError.message; authLoading.value = false; return; }
-          authSuccess.value = '注册成功！请登录';
-          authMode.value = 'login';
-          authLoading.value = false;
-        } else {
-          const { data, error } = await sb.auth.signInWithPassword({ email: authUser.email, password: authUser.password });
-          if (error) { authError.value = error.message; authLoading.value = false; return; }
-          await loadUser(data.user);
-          showAuth.value = false;
-          showLanding.value = false;
-          showToast('登录成功', 'success');
-        }
-      } catch (e) {
-        authError.value = e.message || '操作失败';
-      }
-      authLoading.value = false;
-    }
-
-    async function loadUser(authUser) {
-      const { data, error } = await sb.from('users').select('*').eq('username', authUser.username).maybeSingle();
-      if (error || !data) {
-        const { data: all } = await sb.from('users').select('*');
-        showToast('用户数据未找到，请检查马甲号', 'error');
-        return;
-      }
-      user.value = data;
-      await checkDailyReset();
-      await loadStats();
-      await loadTask();
-      await loadQueue();
-      await loadLog();
-    }
-
-    async function checkDailyReset() {
+    async function loadProfile() {
       if (!user.value) return;
-      const today = new Date().toISOString().split('T')[0];
-      if (user.value.last_given_date !== today) {
-        user.value.today_given = 0;
-        await sb.from('users').update({ today_given: 0, last_given_date: today }).eq('id', user.value.id);
+      const { data, error } = await sb.from('users').select('*').eq('id', user.value.id).single();
+      if (data) {
+        profile.username = data.username || '';
+        profile.main_account = data.main_account || '';
+        profile.given_count = data.given_count || 0;
+        profile.received_count = data.received_count || 0;
+        const today = new Date().toISOString().slice(0, 10);
+        profile.today_given = data.last_given_date === today ? data.today_given : 0;
       }
-    }
-
-    async function loadStats() {
-      if (!user.value) return;
-      userStats.given = user.value.given_count || 0;
-      userStats.received = user.value.received_count || 0;
-      userStats.today_given = user.value.today_given || 0;
     }
 
     async function loadTask() {
-      if (!user.value) return;
       loadingTask.value = true;
-      currentTask.value = null;
-      try {
-        const { data, error } = await sb.from('queue')
-          .select('*, users!inner(username, main_account)')
-          .eq('status', 'waiting')
-          .neq('user_id', user.value.id)
-          .order('position', { ascending: true })
-          .limit(1)
-          .maybeSingle();
-        if (data) {
-          currentTask.value = {
-            queue_id: data.id,
-            giver_username: data.users.username,
-            receiver_main: data.users.main_account,
-            article_url: data.article_url,
-            giver_user_id: data.user_id
-          };
+      const { data, error } = await sb.from('tasks').select('*').eq('giver_id', user.value.id).eq('status', 'pending').order('created_at', { ascending: false }).limit(1);
+      if (data && data.length > 0) {
+        currentTask.value = data[0];
+      } else {
+        const { data: q } = await sb.from('queue').select('*').eq('status', 'waiting').order('position', { ascending: true }).limit(1);
+        if (q && q.length > 0) {
+          const target = q[0];
+          const { data: targetUser } = await sb.from('users').select('main_account').eq('id', target.user_id).single();
+          const { data: articles } = await sb.from('articles').select('*').eq('user_id', target.user_id).order('created_at', { ascending: false }).limit(1);
+          if (articles && articles.length > 0) {
+            const article = articles[0];
+            const { data: task } = await sb.from('tasks').insert({
+              giver_id: user.value.id, receiver_id: target.user_id, article_url: article.url, status: 'pending'
+            }).select().single();
+            currentTask.value = task;
+          } else {
+            currentTask.value = null;
+          }
+        } else {
+          currentTask.value = null;
         }
-      } catch (e) {
-        showToast('加载任务失败', 'error');
       }
       loadingTask.value = false;
     }
 
-    async function confirmLike() {
-      if (!currentTask.value || liking.value) return;
-      if (userStats.today_given >= 20) { showToast('今日点赞已达上限', 'warning'); return; }
-      liking.value = true;
-      try {
-        // 1. Record task as completed
-        const { error: tErr } = await sb.from('tasks').insert({
-          giver_id: user.value.id,
-          receiver_main: currentTask.value.receiver_main,
-          receiver_name: currentTask.value.giver_username,
-          article_url: currentTask.value.article_url,
-          status: 'completed'
-        });
-        if (tErr) { showToast('记录任务失败: ' + tErr.message, 'error'); liking.value = false; return; }
-
-        // 2. Update user stats
-        const newToday = (user.value.today_given || 0) + 1;
-        const newGiven = (user.value.given_count || 0) + 1;
-        const today = new Date().toISOString().split('T')[0];
-        await sb.from('users').update({
-          today_given: newToday, given_count: newGiven, last_given_date: today
-        }).eq('id', user.value.id);
-        user.value.today_given = newToday;
-        user.value.given_count = newGiven;
-        userStats.today_given = newToday;
-        userStats.given = newGiven;
-
-        // 3. Mark queue entry as done
-        await sb.from('queue').update({ status: 'done' }).eq('id', currentTask.value.queue_id);
-
-        // 4. Add self to queue (if not already in)
-        const { data: existing } = await sb.from('queue')
-          .select('id').eq('user_id', user.value.id).eq('status', 'waiting').maybeSingle();
-        if (!existing) {
-          const { data: maxRow } = await sb.from('queue')
-            .select('position').eq('status', 'waiting').order('position', { ascending: false }).limit(1).maybeSingle();
-          const maxPos = maxRow ? maxRow.position : 0;
-          await sb.from('queue').insert({
-            user_id: user.value.id,
-            article_url: 'https://woshiminghuana.lofter.com/',
-            status: 'waiting',
-            position: maxPos + 1
-          });
-        }
-
-        // 5. Update receiver's received_count
-        await sb.from('users').update({ received_count: (currentTask.value.giver_user_id) })
-          .eq('username', currentTask.value.giver_username);
-
-        showToast('点赞成功！已加入队列', 'success');
-        currentTask.value = null;
-        await loadTask();
-        await loadQueue();
-        await loadLog();
-      } catch (e) {
-        showToast('操作失败: ' + (e.message || ''), 'error');
+    async function confirmTask() {
+      if (!currentTask.value) return;
+      const today = new Date().toISOString().slice(0, 10);
+      if (profile.last_given_date === today && profile.today_given >= 20) {
+        showToast('今日点赞已达上限（20/20）', 'error'); return;
       }
-      liking.value = false;
+      const taskId = currentTask.value.id;
+      const receiverId = currentTask.value.receiver_id;
+      const { error } = await sb.from('tasks').update({ status: 'done', done_at: new Date().toISOString() }).eq('id', taskId);
+      if (error) { showToast('确认失败，请重试', 'error'); return; }
+      await sb.from('users').update({ given_count: profile.given_count + 1, today_given: (profile.last_given_date === today ? profile.today_given : 0) + 1, last_given_date: today }).eq('id', user.value.id);
+      await sb.from('users').update({ received_count: sb.rpc('increment', { x: 1 }) }).eq('id', receiverId);
+      await sb.from('queue').insert({ user_id: user.value.id, position: 0, status: 'waiting' });
+      await sb.from('logs').insert({ giver: profile.username, receiver_id: receiverId });
+      showToast('点赞完成！你的创作号已排入队列', 'success');
+      currentTask.value = null;
+      await loadProfile();
+      await loadTask();
+      await loadQueue();
+      await loadLogs();
     }
 
     async function loadQueue() {
-      try {
-        const { data, error } = await sb.from('queue')
-          .select('*, users!inner(username)')
-          .order('position', { ascending: true });
-        if (data) {
-          queueItems.value = data.map(item => ({
-            id: item.id,
-            mask_name: item.users.username,
-            status: item.status,
-            is_you: user.value && item.user_id === user.value.id
-          }));
-        }
-      } catch (e) {}
+      queueLoading.value = true;
+      const { data, error } = await sb.from('queue').select('*, users(username)').order('position', { ascending: true }).limit(50);
+      if (data) {
+        queue.value = data.map((item, i) => ({ ...item, position: i + 1 }));
+      }
+      queueLoading.value = false;
     }
 
-    async function loadLog() {
-      if (!user.value) return;
-      try {
-        const { data: given } = await sb.from('tasks')
-          .select('id, receiver_name, created_at').eq('giver_id', user.value.id).eq('status', 'completed')
-          .order('created_at', { ascending: false }).limit(20);
-        const { data: received } = await sb.from('tasks')
-          .select('id, giver_id, users!inner(username), created_at').eq('receiver_name', user.value.username).eq('status', 'completed')
-          .order('created_at', { ascending: false }).limit(20);
-        let logs = [];
-        if (given) given.forEach(t => logs.push({ id: 'g' + t.id, from_username: user.value.username, to_username: t.receiver_name, time: formatTime(t.created_at) }));
-        if (received) received.forEach(t => logs.push({ id: 'r' + t.id, from_username: t.users.username, to_username: user.value.username, time: formatTime(t.created_at) }));
-        logs.sort((a, b) => b.time > a.time ? 1 : -1);
-        logItems.value = logs;
-      } catch (e) {}
+    async function loadLogs() {
+      logLoading.value = true;
+      const { data, error } = await sb.from('logs').select('*').order('created_at', { ascending: false }).limit(50);
+      if (data) {
+        logs.value = data.map(log => ({ ...log, giver: log.giver, receiver: log.receiver_id }));
+      }
+      logLoading.value = false;
+    }
+
+    async function register() {
+      authError.value = '';
+      if (!regForm.username || !regForm.main_account || !regForm.email || !regForm.password) {
+        authError.value = '请填写所有字段'; return;
+      }
+      if (regForm.password.length < 6) { authError.value = '密码至少 6 位'; return; }
+      loading.value = true;
+      const { data, error } = await sb.auth.signUp({ email: regForm.email, password: regForm.password });
+      if (error) { authError.value = error.message; loading.value = false; return; }
+      if (data.user) {
+        await sb.from('users').insert({ id: data.user.id, username: regForm.username, main_account: regForm.main_account });
+        user.value = data.user;
+        await loadProfile();
+        showAuth.value = null;
+        showToast('注册成功！欢迎加入赞链', 'success');
+      }
+      loading.value = false;
+    }
+
+    async function login() {
+      authError.value = '';
+      if (!loginForm.email || !loginForm.password) { authError.value = '请填写邮箱和密码'; return; }
+      loading.value = true;
+      const { data, error } = await sb.auth.signInWithPassword({ email: loginForm.email, password: loginForm.password });
+      if (error) { authError.value = error.message; loading.value = false; return; }
+      user.value = data.user;
+      await loadProfile();
+      await loadTask();
+      await loadQueue();
+      await loadLogs();
+      showAuth.value = null;
+      showToast('登录成功', 'success');
+      loading.value = false;
+    }
+
+    async function logout() {
+      await sb.auth.signOut();
+      user.value = null;
+      showAuth.value = null;
+      showToast('已退出登录', 'info');
     }
 
     function formatTime(ts) {
-      const d = new Date(ts); const now = new Date();
+      if (!ts) return '';
+      const d = new Date(ts);
+      const now = new Date();
       const diff = (now - d) / 1000;
       if (diff < 60) return '刚刚';
       if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
@@ -533,42 +585,26 @@ createApp({
       return Math.floor(diff / 86400) + '天前';
     }
 
-    async function logout() {
-      await sb.auth.signOut();
-      user.value = null;
-      showLanding.value = true;
-      showToast('已退出登录', 'info');
-    }
+    watch(tab, (val) => {
+      if (val === 'queue' && queue.value.length === 0) loadQueue();
+      if (val === 'log' && logs.value.length === 0) loadLogs();
+    });
 
     onMounted(async () => {
       const { data: { session } } = await sb.auth.getSession();
       if (session) {
-        // Try to restore user by email lookup
-        const { data } = await sb.from('users').select('*').limit(1);
-        // We need username from somewhere; for now check if there's a stored username
-        const storedUsername = localStorage.getItem('zanlian_username');
-        if (storedUsername) {
-          const { data: userData } = await sb.from('users').select('*').eq('username', storedUsername).maybeSingle();
-          if (userData) {
-            await loadUser(userData);
-            showLanding.value = false;
-          }
-        }
+        user.value = session.user;
+        await loadProfile();
+        await loadTask();
+        await loadQueue();
+        await loadLogs();
       }
-      // Auto-refresh queue every 15 seconds
-      setInterval(() => { if (user.value && !showLanding.value) loadQueue(); }, 15000);
-    });
-
-    // Save username to localStorage when user logs in
-    watch(user, (newUser) => {
-      if (newUser) localStorage.setItem('zanlian_username', newUser.username);
-      else localStorage.removeItem('zanlian_username');
     });
 
     return {
-      user, showLanding, userStats, currentTab, currentTask, queueItems, logItems,
-      loadingTask, liking, showAuth, authMode, authError, authSuccess, authLoading,
-      authUser, toast, scrollTo, handleAuth, confirmLike, logout
+      user, loading, loadingTask, queueLoading, logLoading, showAuth, authError, tab, faqOpen,
+      currentTask, queue, logs, toast, regForm, loginForm, profile, faqs,
+      register, login, logout, confirmTask, loadTask, loadQueue, loadLogs, formatTime
     };
   }
 }).mount('#app');
