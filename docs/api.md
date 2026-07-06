@@ -138,3 +138,44 @@ const { data: received } = await supabase.from('tasks')
   .eq('status', 'completed')
   .order('created_at', { ascending: false });
 ```
+
+---
+
+## Serverless API
+
+### POST /api/verify-like — 点赞验证
+
+验证用户是否真的在 LOFTER 文章页点了赞。
+
+**请求：**
+
+```json
+POST /api/verify-like
+Content-Type: application/json
+
+{
+  "article_url": "https://xxx.lofter.com/post/ade72416_34df7d930",
+  "liker_blog": "https://yyy.lofter.com/"
+}
+```
+
+**响应：**
+
+```json
+{
+  "verified": true,
+  "liker_count": 30,
+  "likers": ["乒乓大国手", "蓼运の欢🍀", "墨然", "..."],
+  "liker_domain": "yyy.lofter.com"
+}
+```
+
+**原理：**
+1. 用 LOFTER 服务号 Cookie 抓取文章页 HTML（需登录态才有 SSR 点赞列表）
+2. 解析 `<ol class="notes">` 中的 `<a href="//username.lofter.com/">` 提取点赞者域名
+3. 比对 `liker_blog` 的域名是否在列表中
+
+**错误码：**
+- `400` — 缺少参数
+- `502` — Cookie 过期（HTML < 10KB，未拿到 SSR 内容）
+- `500` — 服务器异常

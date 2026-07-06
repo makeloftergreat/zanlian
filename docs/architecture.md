@@ -7,12 +7,13 @@
     │
     ├── CDN 加载 Vue 3 + Supabase JS SDK
     │
-    ▼
-Supabase (PostgreSQL + Auth + REST API)
+    ├── Supabase (PostgreSQL + Auth + REST API)
+    │     ├── users 表 ── 用户数据
+    │     ├── tasks 表 ── 点赞任务
+    │     └── queue 表 ── 排队队列
     │
-    ├── users 表 ── 用户数据
-    ├── tasks 表 ── 点赞任务
-    └── queue 表 ── 排队队列
+    └── Vercel Serverless Functions
+          └── /api/verify-like ── 点赞验证（抓取 LOFTER 文章页）
 ```
 
 ## 核心流程
@@ -35,7 +36,7 @@ localStorage 缓存用户信息
 跳转到任务面板
 ```
 
-### 点赞流程（先付后得）
+### 点赞流程（先付后得 + 验证）
 
 ```
 用户进入任务面板
@@ -47,17 +48,25 @@ localStorage 缓存用户信息
 显示任务：去给 XXX 的最新文章点赞
     │
     ▼
-用户点击"执行点赞" → 跳转到文章页面
+用户点击"去点赞" → 跳转到文章页面
     │
     ▼
-用户确认已完成点赞
+用户在 LOFTER 点红心后回来点"确认完成"
     │
     ▼
-1. tasks 表新增记录，status=completed
-2. 用户 today_given +1, given_count +1
-3. 自己的创作号排入 queue（position = max+1）
-4. 被点赞的 queue 记录 status=done
-5. 自动分配下一个任务
+调用 /api/verify-like 验证点赞
+    │  ├── 用 LOFTER 服务号 Cookie 抓取文章页 HTML
+    │  ├── 解析 <ol class="notes"> 提取点赞者博客域名
+    │  └── 比对用户马甲号域名是否在列表中
+    │
+    ├── 验证失败 → 提示"未检测到你的点赞"
+    │
+    └── 验证通过 ↓
+        1. tasks 表更新记录，status=done
+        2. 用户 today_given +1, given_count +1
+        3. 自己的创作号排入 queue
+        4. 被点赞的 queue 记录 status=done
+        5. 自动分配下一个任务
 ```
 
 ### 排队规则

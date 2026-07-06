@@ -1,7 +1,7 @@
 # 赞链 (ZanLian) 开发记录
 
 > 本文件记录所有已讨论和已实现的功能需求，供跨设备、跨会话恢复上下文使用。
-> 当前版本：**v0.2.0**
+> 当前版本：**v0.4.0**
 > 最后更新：2026-07-03
 
 ---
@@ -12,6 +12,8 @@
 |------|------|------|
 | v0.1.0 | 2026-07-02 | 初始版本，完成核心功能开发 |
 | v0.2.0 | 2026-07-03 | 修复 Vue 渲染问题，清空数据库重建，修复邮箱验证链接 |
+| v0.3.0 | 2026-07-03 | UI 全面改版，红色主题，落地页+仪表盘+FAQ |
+| v0.4.0 | 2026-07-03 | 点赞验证功能，Serverless API 自动检测点赞 |
 
 ---
 
@@ -262,6 +264,49 @@ python -m http.server 8080
 | 2026-07-03 | GitHub API 推送替代 git push | GitHub HTTPS 不稳定时，用 REST API 推送文件更可靠 |
 | 2026-07-03 | 使用 Vercel 子域名 zanlian.vercel.app | 暂不绑定自定义域名，先用 Vercel 默认域名 |
 | 2026-07-03 | 域名 jlccedu.ac.cn 暂不使用 | .ac.cn 域名绑定 Vercel 有限制，后续可考虑 |
+| 2026-07-03 | 点赞验证功能 | 防止用户不点赞直接确认，用 LOFTER 服务号 Cookie 抓取文章页 SSR HTML 解析点赞列表 |
+| 2026-07-03 | Cookie 内嵌而非环境变量 | Supabase SQL Editor 不可用且 Vercel 账号不匹配，临时内嵌在代码中，后续改为 Supabase settings 表存储 |
+
+---
+
+## 九、v0.4.0 点赞验证功能
+
+### 9.1 功能说明
+
+用户点"确认完成"后，系统自动验证是否真的点了赞：
+
+1. 前端调用 `/api/verify-like` 接口
+2. Serverless Function 用 LOFTER 服务号 Cookie 抓取文章页 HTML
+3. 解析 `<ol class="notes">` 中的点赞者博客域名列表
+4. 比对用户填写的马甲号域名是否在列表中
+5. 验证通过 → 计数+1，入队列
+6. 验证失败 → 提示"未检测到你的点赞"
+
+### 9.2 技术实现
+
+**关键发现：**
+- LOFTER 文章页 HTML 包含 SSR 渲染的点赞列表 `<ol class="notes">`
+- 不带 Cookie 只返回 9KB SPA 壳，带 Cookie 返回 31KB 完整 HTML
+- 点赞者博客链接格式：`<a href="//username.lofter.com/" title="用户名 - 时间">`
+- 每页最多返回 50 个点赞者
+
+**文件：**
+- `api/verify-like.js` — Vercel Serverless Function
+- `index.html` — `confirmTask` 函数增加验证逻辑，按钮显示"验证中..."状态
+
+**接口：**
+```
+POST /api/verify-like
+Body: { article_url: "https://xxx.lofter.com/post/xxx", liker_blog: "https://yyy.lofter.com/" }
+Response: { verified: true/false, liker_count: 30, likers: ["用户A", "用户B", ...] }
+```
+
+### 9.3 Cookie 维护
+
+- Cookie 内嵌在 `api/verify-like.js` 的 `LOFTER_COOKIE` 常量中
+- Cookie 会过期（通常 7-30 天），过期后接口返回 502 错误
+- 更新方法：在浏览器登录 LOFTER → 复制 Cookie → 修改代码 → push 部署
+- 后续优化：迁移到 Supabase `settings` 表存储，通过管理后台更新
 
 ---
 
