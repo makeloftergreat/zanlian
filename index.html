@@ -607,27 +607,26 @@ createApp({
       }
       verifying.value = false;
 
-      // 测试模式：只更新本地状态，不写数据库
-      if (currentTask.value.is_test) {
-        profile.given_count += 1;
-        profile.today_given = (profile.last_given_date === today ? profile.today_given : 0) + 1;
-        profile.last_given_date = today;
-        await sb.from('users').update({ given_count: profile.given_count, today_given: profile.today_given, last_given_date: today }).eq('id', user.value.id);
-        showToast('验证通过！测试点赞完成，你的收赞号已排入队列', 'success');
-        currentTask.value = null;
-        await loadTask();
-        await loadQueue();
-        await loadLogs();
-        return;
-      }
-      const taskId = currentTask.value.id;
-      const receiverId = currentTask.value.receiver_id;
-      const { error } = await sb.from('tasks').update({ status: 'done', done_at: new Date().toISOString() }).eq('id', taskId);
-      if (error) { showToast('确认失败，请重试', 'error'); return; }
-      await sb.from('users').update({ given_count: profile.given_count + 1, today_given: (profile.last_given_date === today ? profile.today_given : 0) + 1, last_given_date: today }).eq('id', user.value.id);
-      await sb.from('users').update({ received_count: sb.rpc('increment', { x: 1 }) }).eq('id', receiverId);
+      // 更新点赞者统计
+      profile.given_count += 1;
+      profile.today_given = (profile.last_given_date === today ? profile.today_given : 0) + 1;
+      profile.last_given_date = today;
+      await sb.from('users').update({ given_count: profile.given_count, today_given: profile.today_given, last_given_date: today }).eq('id', user.value.id);
+
+      // 写溯源日志
+      await sb.from('logs').insert({ giver: profile.username, receiver_id: currentTask.value.receiver_id || null });
+
+      // 入队列排队
       await sb.from('queue').insert({ user_id: user.value.id, position: 0, status: 'waiting' });
-      await sb.from('logs').insert({ giver: profile.username, receiver_id: receiverId });
+
+      // 测试模式：不更新 tasks 表
+      if (!currentTask.value.is_test) {
+        const taskId = currentTask.value.id;
+        const receiverId = currentTask.value.receiver_id;
+        await sb.from('tasks').update({ status: 'done', done_at: new Date().toISOString() }).eq('id', taskId);
+        await sb.from('users').update({ received_count: (profile.received_count || 0) + 1 }).eq('id', receiverId);
+      }
+
       showToast('验证通过！点赞完成，你的收赞号已排入队列', 'success');
       currentTask.value = null;
       await loadProfile();
