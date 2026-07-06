@@ -45,11 +45,12 @@ export default async function handler(req, res) {
     }
 
     // Parse the notes section - extract all liker blog links
+    // href format: //username.lofter.com/
     const noteRegex = /<li class="note[^"]*"[^>]*>[\s\S]*?<a\s+href="\/\/([^"]+)"\s+title="([^"]+)"/g;
     let match;
     const likers = [];
     while ((match = noteRegex.exec(html)) !== null) {
-      const blogDomain = match[1];
+      const blogDomain = match[1].replace(/\/$/, ''); // strip trailing slash
       const titleInfo = match[2];
       likers.push({ blog: blogDomain, title: titleInfo });
     }
