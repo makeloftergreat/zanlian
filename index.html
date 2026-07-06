@@ -525,7 +525,7 @@ createApp({
 
     async function loadProfile() {
       if (!user.value) return;
-      const { data, error } = await sb.from('users').select('*').eq('id', user.value.id).single();
+      const { data, error } = await sb.from('users').select('*').eq('id', user.value.id).maybeSingle();
       if (data) {
         profile.username = data.username || '';
         profile.main_account = data.main_account || '';
@@ -534,6 +534,12 @@ createApp({
         profile.received_count = data.received_count || 0;
         const today = new Date().toISOString().slice(0, 10);
         profile.today_given = data.last_given_date === today ? data.today_given : 0;
+      } else {
+        // users 表里没有这行（旧用户），自动创建
+        await sb.from('users').upsert({ id: user.value.id, username: '', main_account: '', article_url: '' });
+        profile.username = '';
+        profile.main_account = '';
+        profile.article_url = '';
       }
     }
 
@@ -650,7 +656,7 @@ createApp({
         showToast('请填写所有字段', 'error'); return;
       }
       loading.value = true;
-      const { error } = await sb.from('users').update({ username: setupForm.username, main_account: setupForm.main_account, article_url: setupForm.article_url }).eq('id', user.value.id);
+      const { error } = await sb.from('users').upsert({ id: user.value.id, username: setupForm.username, main_account: setupForm.main_account, article_url: setupForm.article_url }).eq('id', user.value.id);
       if (error) { showToast('保存失败：' + error.message, 'error'); loading.value = false; return; }
       profile.username = setupForm.username;
       profile.main_account = setupForm.main_account;
@@ -696,7 +702,7 @@ createApp({
         showToast('请填写所有字段', 'error'); return;
       }
       loading.value = true;
-      const { error } = await sb.from('users').update({ username: settingsForm.username, main_account: settingsForm.main_account, article_url: settingsForm.article_url }).eq('id', user.value.id);
+      const { error } = await sb.from('users').upsert({ id: user.value.id, username: settingsForm.username, main_account: settingsForm.main_account, article_url: settingsForm.article_url }).eq('id', user.value.id);
       if (error) { showToast('保存失败：' + error.message, 'error'); loading.value = false; return; }
       profile.username = settingsForm.username;
       profile.main_account = settingsForm.main_account;
