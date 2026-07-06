@@ -584,7 +584,7 @@ createApp({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             article_url: currentTask.value.article_url,
-            liker_blog: 'https://' + profile.username + '.lofter.com/',
+            liker_name: profile.username,
           }),
         });
         const verifyData = await verifyResp.json();
