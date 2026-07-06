@@ -313,9 +313,9 @@ a{color:var(--accent);text-decoration:none}
         <div class="hint">用这个号去给别人点赞</div>
       </div>
       <div class="form-group">
-        <label>收赞号（创作号）</label>
-        <input v-model="setupForm.main_account" type="text" placeholder="你的 LOFTER 创作号链接，如 https://yyy.lofter.com/">
-        <div class="hint">别人会去这个号的主页给你的最新文章点赞</div>
+        <label>收赞号文章地址</label>
+        <input v-model="setupForm.main_account" type="text" placeholder="你的 LOFTER 文章链接，如 https://yyy.lofter.com/post/xxxxx_xxxxx">
+        <div class="hint">别人会直接去这个文章页给你点赞</div>
       </div>
       <button class="btn-full" @click="saveSetup" :disabled="loading">
         {{ loading ? '保存中...' : '保存并开始' }}
@@ -331,7 +331,7 @@ a{color:var(--accent);text-decoration:none}
         <div class="avatar">{{ profile.username ? profile.username[0].toUpperCase() : '?' }}</div>
         <div class="info">
           <h3>{{ profile.username }}</h3>
-          <p>收赞号：{{ profile.main_account }}</p>
+          <p>收赞文章：{{ profile.main_account }}</p>
         </div>
       </div>
       <div class="stats">
@@ -452,9 +452,9 @@ a{color:var(--accent);text-decoration:none}
       <div class="hint">用这个号去给别人点赞</div>
     </div>
     <div class="form-group">
-      <label>收赞号（创作号）</label>
-      <input v-model="settingsForm.main_account" type="text" placeholder="你的 LOFTER 创作号链接">
-      <div class="hint">别人会去这个号的主页给你的最新文章点赞</div>
+      <label>收赞号文章地址</label>
+      <input v-model="settingsForm.main_account" type="text" placeholder="你的 LOFTER 文章链接">
+      <div class="hint">别人会直接去这个文章页给你点赞</div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" @click="showSettingsModal = false">取消</button>
@@ -538,8 +538,8 @@ createApp({
     }
 
     const testArticle = {
-      url: 'https://pingpangdaguoshou.lofter.com/',
-      title: '乒乓大国手的最新文章',
+      url: 'https://pingpangdaguoshou.lofter.com/post/ade72416_34df7d930',
+      title: '乒乓大国手的文章',
       author: '乒乓大国手'
     };
 
@@ -554,19 +554,8 @@ createApp({
           const target = q[0];
           const { data: targetUser } = await sb.from('users').select('main_account').eq('id', target.user_id).single();
           if (targetUser && targetUser.main_account) {
-            // 调用服务端解析最新文章URL
-            let articleUrl = targetUser.main_account;
-            try {
-              const resolveResp = await fetch('/api/resolve-article?blog=' + encodeURIComponent(targetUser.main_account));
-              const resolveData = await resolveResp.json();
-              if (resolveResp.ok && resolveData.article_url) {
-                articleUrl = resolveData.article_url;
-              }
-            } catch (e) {
-              console.warn('解析文章URL失败，使用博客主页', e);
-            }
             const { data: task } = await sb.from('tasks').insert({
-              giver_id: user.value.id, receiver_id: target.user_id, article_url: articleUrl, status: 'pending'
+              giver_id: user.value.id, receiver_id: target.user_id, article_url: targetUser.main_account, status: 'pending'
             }).select().single();
             currentTask.value = task;
           } else {
@@ -574,17 +563,7 @@ createApp({
           }
         } else {
           // 测试模式：队列为空时，展示测试文章供点赞
-          let testUrl = testArticle.url;
-          try {
-            const resolveResp = await fetch('/api/resolve-article?blog=pingpangdaguoshou');
-            const resolveData = await resolveResp.json();
-            if (resolveResp.ok && resolveData.article_url) {
-              testUrl = resolveData.article_url;
-            }
-          } catch (e) {
-            console.warn('解析测试文章URL失败', e);
-          }
-          currentTask.value = { id: 'test', article_url: testUrl, target_user: testArticle.author, is_test: true };
+          currentTask.value = { id: 'test', article_url: testArticle.url, target_user: testArticle.author, is_test: true };
         }
       }
       loadingTask.value = false;
