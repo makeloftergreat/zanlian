@@ -426,8 +426,9 @@ a{color:var(--accent);text-decoration:none}
         <div class="log-list" v-if="logs.length > 0">
           <div class="log-item" v-for="log in logs" :key="log.id">
             <span class="from">{{ log.giver }}</span>
-            <span class="arrow">-></span>
-            <span class="to">{{ log.receiver }}</span>
+            <span class="arrow">为</span>
+            <span class="to">{{ log.receiver || '未知' }}</span>
+            <span class="arrow">点赞</span>
             <span class="time">{{ formatTime(log.created_at) }}</span>
           </div>
         </div>
@@ -614,7 +615,14 @@ createApp({
       await sb.from('users').update({ given_count: profile.given_count, today_given: profile.today_given, last_given_date: today }).eq('id', user.value.id);
 
       // 写溯源日志
-      await sb.from('logs').insert({ giver: profile.username, receiver_id: currentTask.value.receiver_id || null });
+      let receiverName = '测试文章';
+      if (currentTask.value.receiver_id) {
+        const { data: recvUser } = await sb.from('users').select('username').eq('id', currentTask.value.receiver_id).single();
+        if (recvUser && recvUser.username) receiverName = recvUser.username;
+      } else if (currentTask.value.target_user) {
+        receiverName = currentTask.value.target_user;
+      }
+      await sb.from('logs').insert({ giver: profile.username, receiver: receiverName, giver_id: user.value.id, receiver_id: currentTask.value.receiver_id || null });
 
       // 入队列排队
       await sb.from('queue').insert({ user_id: user.value.id, position: 0, status: 'waiting' });
@@ -651,7 +659,7 @@ createApp({
       logLoading.value = true;
       const { data, error } = await sb.from('logs').select('*').order('created_at', { ascending: false }).limit(50);
       if (data) {
-        logs.value = data.map(log => ({ ...log, giver: log.giver, receiver: log.receiver_id }));
+        logs.value = data;
       }
       logLoading.value = false;
     }
@@ -753,12 +761,8 @@ createApp({
     function formatTime(ts) {
       if (!ts) return '';
       const d = new Date(ts);
-      const now = new Date();
-      const diff = (now - d) / 1000;
-      if (diff < 60) return '刚刚';
-      if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
-      if (diff < 86400) return Math.floor(diff / 3600) + '小时前';
-      return Math.floor(diff / 86400) + '天前';
+      const pad = n => String(n).padStart(2, '0');
+      return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
     }
 
     watch(tab, (val) => {
