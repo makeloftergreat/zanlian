@@ -574,7 +574,17 @@ createApp({
           }
         } else {
           // 测试模式：队列为空时，展示测试文章供点赞
-          currentTask.value = { id: 'test', article_url: testArticle.url, target_user: testArticle.author, is_test: true };
+          let testUrl = testArticle.url;
+          try {
+            const resolveResp = await fetch('/api/resolve-article?blog=pingpangdaguoshou');
+            const resolveData = await resolveResp.json();
+            if (resolveResp.ok && resolveData.article_url) {
+              testUrl = resolveData.article_url;
+            }
+          } catch (e) {
+            console.warn('解析测试文章URL失败', e);
+          }
+          currentTask.value = { id: 'test', article_url: testUrl, target_user: testArticle.author, is_test: true };
         }
       }
       loadingTask.value = false;
