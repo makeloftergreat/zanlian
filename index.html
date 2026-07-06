@@ -400,10 +400,10 @@ a{color:var(--accent);text-decoration:none}
       </div>
       <template v-else>
         <div class="queue-list" v-if="queue.length > 0">
-          <div class="queue-item" v-for="(item, i) in queue" :key="item.id">
+          <div class="queue-item" v-for="(item, i) in queue" :key="i">
             <div class="pos" :class="item.status">{{ item.position }}</div>
             <div class="info">
-              <div class="name">{{ item.username }}</div>
+              <div class="name">{{ item.users ? item.users.username : item.username }}</div>
               <div class="status" :class="item.status">{{ item.status === 'done' ? '已完成' : item.status === 'active' ? '正在收赞' : '排队中' }}</div>
             </div>
           </div>
