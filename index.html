@@ -85,6 +85,8 @@ a{color:var(--accent);text-decoration:none}
 .btn-cancel{background:transparent;border:1px solid var(--border) !important;color:var(--text-secondary)}
 .btn-save{background:var(--accent);color:#fff}
 .test-badge{background:#f59e0b;color:#fff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-left:8px}
+.btn-skip{width:100%;margin-top:12px;background:transparent;border:none;color:var(--text-dim);font-size:13px;cursor:pointer;padding:8px;transition:color .2s}
+.btn-skip:hover{color:var(--text-primary)}
 .auth-error{background:rgba(255,92,92,.1);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--accent);margin-bottom:16px}
 
 /* Dashboard */
@@ -302,7 +304,7 @@ a{color:var(--accent);text-decoration:none}
 <template v-else>
   <div class="container">
     <!-- Setup onboarding -->
-    <div v-if="showSetup || !profile.username" class="setup-box">
+    <div v-if="showSetup" class="setup-box">
       <h2>完善账号信息</h2>
       <p class="setup-sub">填写你的 LOFTER 账号，开始互助点赞</p>
       <div class="form-group">
@@ -313,16 +315,12 @@ a{color:var(--accent);text-decoration:none}
       <div class="form-group">
         <label>收赞号（创作号）</label>
         <input v-model="setupForm.main_account" type="text" placeholder="你的 LOFTER 创作号链接，如 https://yyy.lofter.com/">
-        <div class="hint">这个号将获得别人的回赞</div>
-      </div>
-      <div class="form-group">
-        <label>收赞文章链接</label>
-        <input v-model="setupForm.article_url" type="text" placeholder="你想让别人点赞的文章地址">
-        <div class="hint">别人会打开这个链接去给你的文章点赞</div>
+        <div class="hint">别人会去这个号的主页给你的最新文章点赞</div>
       </div>
       <button class="btn-full" @click="saveSetup" :disabled="loading">
         {{ loading ? '保存中...' : '保存并开始' }}
       </button>
+      <button class="btn-skip" @click="skipSetup">稍后再填，先逛逛</button>
     </div>
 
     <!-- Main dashboard (only show after setup) -->
@@ -372,10 +370,10 @@ a{color:var(--accent);text-decoration:none}
           </div>
           <div class="task-info">
             为 <span>{{ currentTask.target_user }}</span> 的文章点赞<br>
-            完成后你的创作号 <span>{{ profile.main_account }}</span> 将排入队列
+            完成后你的收赞号将排入队列
           </div>
           <div class="task-url-box">
-            <div class="label">文章链接</div>
+            <div class="label">收赞号主页</div>
             <div class="url">{{ currentTask.article_url }}</div>
           </div>
           <div class="task-actions">
@@ -454,12 +452,7 @@ a{color:var(--accent);text-decoration:none}
     <div class="form-group">
       <label>收赞号（创作号）</label>
       <input v-model="settingsForm.main_account" type="text" placeholder="你的 LOFTER 创作号链接">
-      <div class="hint">这个号将获得别人的回赞</div>
-    </div>
-    <div class="form-group">
-      <label>收赞文章链接</label>
-      <input v-model="settingsForm.article_url" type="text" placeholder="你想让别人点赞的文章地址">
-      <div class="hint">别人会打开这个链接去给你的文章点赞</div>
+      <div class="hint">别人会去这个号的主页给你的最新文章点赞</div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" @click="showSettingsModal = false">取消</button>
@@ -503,12 +496,12 @@ createApp({
     const toast = reactive({ show: false, msg: '', type: 'info' });
 
     const regForm = reactive({ email: '', password: '' });
-    const setupForm = reactive({ username: '', main_account: '', article_url: '' });
+    const setupForm = reactive({ username: '', main_account: '' });
     const showSetup = ref(false);
     const loginForm = reactive({ email: '', password: '' });
-    const profile = reactive({ username: '', main_account: '', article_url: '', given_count: 0, received_count: 0, today_given: 0, last_given_date: '' });
+    const profile = reactive({ username: '', main_account: '', given_count: 0, received_count: 0, today_given: 0, last_given_date: '' });
     const showSettingsModal = ref(false);
-    const settingsForm = reactive({ username: '', main_account: '', article_url: '' });
+    const settingsForm = reactive({ username: '', main_account: '' });
 
     const faqs = [
       { q: '马甲号和创作号有什么区别？', a: '马甲号是你用来给别人点赞的账号，创作号是你发布原创内容、需要获得点赞的账号。两者完全隔离，互不暴露。' },
@@ -529,23 +522,21 @@ createApp({
       if (data) {
         profile.username = data.username || '';
         profile.main_account = data.main_account || '';
-        profile.article_url = data.article_url || '';
         profile.given_count = data.given_count || 0;
         profile.received_count = data.received_count || 0;
         const today = new Date().toISOString().slice(0, 10);
         profile.today_given = data.last_given_date === today ? data.today_given : 0;
       } else {
         // users 表里没有这行（旧用户），自动创建
-        await sb.from('users').upsert({ id: user.value.id, username: '', main_account: '', article_url: '' });
+        await sb.from('users').upsert({ id: user.value.id, username: '', main_account: '' });
         profile.username = '';
         profile.main_account = '';
-        profile.article_url = '';
       }
     }
 
     const testArticle = {
-      url: 'https://pingpangdaguoshou.lofter.com/post/ade72416_34df7d930',
-      title: '【喜羊羊x美羊羊】山洞里的血色浪漫',
+      url: 'https://pingpangdaguoshou.lofter.com/',
+      title: '乒乓大国手的最新文章',
       author: '乒乓大国手'
     };
 
@@ -558,10 +549,10 @@ createApp({
         const { data: q } = await sb.from('queue').select('*').eq('status', 'waiting').order('position', { ascending: true }).limit(1);
         if (q && q.length > 0) {
           const target = q[0];
-          const { data: targetUser } = await sb.from('users').select('main_account,article_url').eq('id', target.user_id).single();
-          if (targetUser && targetUser.article_url) {
+          const { data: targetUser } = await sb.from('users').select('main_account').eq('id', target.user_id).single();
+          if (targetUser && targetUser.main_account) {
             const { data: task } = await sb.from('tasks').insert({
-              giver_id: user.value.id, receiver_id: target.user_id, article_url: targetUser.article_url, status: 'pending'
+              giver_id: user.value.id, receiver_id: target.user_id, article_url: targetUser.main_account, status: 'pending'
             }).select().single();
             currentTask.value = task;
           } else {
@@ -652,15 +643,14 @@ createApp({
     }
 
     async function saveSetup() {
-      if (!setupForm.username || !setupForm.main_account || !setupForm.article_url) {
-        showToast('请填写所有字段', 'error'); return;
+      if (!setupForm.username || !setupForm.main_account) {
+        showToast('请填写点赞号和收赞号', 'error'); return;
       }
       loading.value = true;
-      const { error } = await sb.from('users').upsert({ id: user.value.id, username: setupForm.username, main_account: setupForm.main_account, article_url: setupForm.article_url }).eq('id', user.value.id);
+      const { error } = await sb.from('users').upsert({ id: user.value.id, username: setupForm.username, main_account: setupForm.main_account }).eq('id', user.value.id);
       if (error) { showToast('保存失败：' + error.message, 'error'); loading.value = false; return; }
       profile.username = setupForm.username;
       profile.main_account = setupForm.main_account;
-      profile.article_url = setupForm.article_url;
       showSetup.value = false;
       showToast('账号信息已保存！', 'success');
       await loadTask();
@@ -690,23 +680,26 @@ createApp({
       loading.value = false;
     }
 
+    function skipSetup() {
+      showSetup.value = false;
+      showToast('稍后可在设置中填写', 'info');
+    }
+
     function openSettings() {
       settingsForm.username = profile.username;
       settingsForm.main_account = profile.main_account;
-      settingsForm.article_url = profile.article_url;
       showSettingsModal.value = true;
     }
 
     async function saveSettings() {
-      if (!settingsForm.username || !settingsForm.main_account || !settingsForm.article_url) {
-        showToast('请填写所有字段', 'error'); return;
+      if (!settingsForm.username || !settingsForm.main_account) {
+        showToast('请填写点赞号和收赞号', 'error'); return;
       }
       loading.value = true;
-      const { error } = await sb.from('users').upsert({ id: user.value.id, username: settingsForm.username, main_account: settingsForm.main_account, article_url: settingsForm.article_url }).eq('id', user.value.id);
+      const { error } = await sb.from('users').upsert({ id: user.value.id, username: settingsForm.username, main_account: settingsForm.main_account }).eq('id', user.value.id);
       if (error) { showToast('保存失败：' + error.message, 'error'); loading.value = false; return; }
       profile.username = settingsForm.username;
       profile.main_account = settingsForm.main_account;
-      profile.article_url = settingsForm.article_url;
       showSettingsModal.value = false;
       showToast('设置已保存', 'success');
       loading.value = false;
@@ -720,7 +713,6 @@ createApp({
       showSettingsModal.value = false;
       setupForm.username = '';
       setupForm.main_account = '';
-      setupForm.article_url = '';
       showToast('已退出登录', 'info');
     }
 
@@ -758,7 +750,7 @@ createApp({
     return {
       user, loading, loadingTask, queueLoading, logLoading, showAuth, authError, tab, faqOpen,
       currentTask, queue, logs, toast, regForm, loginForm, profile, faqs,
-      setupForm, showSetup, saveSetup,
+      setupForm, showSetup, saveSetup, skipSetup,
       showSettingsModal, settingsForm, openSettings, saveSettings,
       register, login, logout, confirmTask, loadTask, loadQueue, loadLogs, formatTime
     };
