@@ -373,7 +373,7 @@ a{color:var(--accent);text-decoration:none}
             完成后你的收赞号将排入队列
           </div>
           <div class="task-url-box">
-            <div class="label">收赞号主页</div>
+            <div class="label">文章地址</div>
             <div class="url">{{ currentTask.article_url }}</div>
           </div>
           <div class="task-actions">
@@ -554,8 +554,19 @@ createApp({
           const target = q[0];
           const { data: targetUser } = await sb.from('users').select('main_account').eq('id', target.user_id).single();
           if (targetUser && targetUser.main_account) {
+            // 调用服务端解析最新文章URL
+            let articleUrl = targetUser.main_account;
+            try {
+              const resolveResp = await fetch('/api/resolve-article?blog=' + encodeURIComponent(targetUser.main_account));
+              const resolveData = await resolveResp.json();
+              if (resolveResp.ok && resolveData.article_url) {
+                articleUrl = resolveData.article_url;
+              }
+            } catch (e) {
+              console.warn('解析文章URL失败，使用博客主页', e);
+            }
             const { data: task } = await sb.from('tasks').insert({
-              giver_id: user.value.id, receiver_id: target.user_id, article_url: targetUser.main_account, status: 'pending'
+              giver_id: user.value.id, receiver_id: target.user_id, article_url: articleUrl, status: 'pending'
             }).select().single();
             currentTask.value = task;
           } else {
@@ -584,7 +595,7 @@ createApp({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             article_url: currentTask.value.article_url,
-            liker_blog: profile.username,
+            liker_blog: 'https://' + profile.username + '.lofter.com/',
           }),
         });
         const verifyData = await verifyResp.json();
