@@ -135,6 +135,7 @@ a{color:var(--accent);text-decoration:none}
 .queue-list{display:flex;flex-direction:column;gap:10px}
 .queue-item{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;transition:var(--transition)}
 .queue-item:hover{border-color:var(--border-light);background:var(--bg-hover)}
+.queue-item.queue-me{border-color:var(--accent);background:var(--accent-glow)}
 .queue-item .pos{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;margin-right:12px}
 .queue-item .pos.next{background:var(--accent-glow);color:var(--accent)}
 .queue-item .pos.waiting{background:var(--bg-hover);color:var(--text-dim)}
@@ -400,11 +401,11 @@ a{color:var(--accent);text-decoration:none}
       </div>
       <template v-else>
         <div class="queue-list" v-if="queue.length > 0">
-          <div class="queue-item" v-for="(item, i) in queue" :key="i">
-            <div class="pos" :class="item.status">{{ item.position }}</div>
+          <div class="queue-item" :class="{ 'queue-me': item.is_me }" v-for="(item, i) in queue" :key="i">
+            <div class="pos" :class="{ next: item.is_first, waiting: !item.is_first }">{{ item.position }}</div>
             <div class="info">
-              <div class="name">{{ item.users ? item.users.username : item.username }}</div>
-              <div class="status" :class="item.status">{{ item.status === 'done' ? '已完成' : item.status === 'active' ? '正在收赞' : '排队中' }}</div>
+              <div class="name">{{ item.users ? item.users.username : '未知' }} <span v-if="item.is_me" style="color:var(--accent);font-size:12px">(我)</span></div>
+              <div class="status" :class="{ active: item.is_first, waiting: !item.is_first }">{{ item.is_first ? '正在收赞' : '排队中' }}</div>
             </div>
           </div>
         </div>
@@ -425,10 +426,16 @@ a{color:var(--accent);text-decoration:none}
       <template v-else>
         <div class="log-list" v-if="logs.length > 0">
           <div class="log-item" v-for="log in logs" :key="log.id">
-            <span class="from">{{ log.giver }}</span>
-            <span class="arrow">为</span>
-            <span class="to">{{ log.receiver || '未知' }}</span>
-            <span class="arrow">点赞</span>
+            <template v-if="log.is_me_giving">
+              <span class="from">我</span>
+              <span class="arrow">为</span>
+              <span class="to">{{ log.receiver || '未知' }}</span>
+              <span class="arrow">点赞</span>
+            </template>
+            <template v-else>
+              <span class="from">{{ log.giver }}</span>
+              <span class="arrow">为我点赞</span>
+            </template>
             <span class="time">{{ formatTime(log.created_at) }}</span>
           </div>
         </div>
@@ -546,25 +553,41 @@ createApp({
 
     async function loadTask() {
       loadingTask.value = true;
-      const { data, error } = await sb.from('tasks').select('*').eq('giver_id', user.value.id).eq('status', 'pending').order('created_at', { ascending: false }).limit(1);
-      if (data && data.length > 0) {
-        currentTask.value = data[0];
+      // 检查是否已有待完成任务
+      const { data: existingTask } = await sb.from('tasks').select('*').eq('giver_id', user.value.id).eq('status', 'pending').order('created_at', { ascending: false }).limit(1);
+      if (existingTask && existingTask.length > 0) {
+        // 补充被赞人名字
+        const task = existingTask[0];
+        if (task.receiver_id) {
+          const { data: recvUser } = await sb.from('users').select('username, main_account').eq('id', task.receiver_id).single();
+          if (recvUser) {
+            task.target_user = recvUser.username;
+            task.article_url = recvUser.main_account;
+          }
+        }
+        currentTask.value = task;
       } else {
-        const { data: q } = await sb.from('queue').select('*').eq('status', 'waiting').order('position', { ascending: true }).limit(1);
+        // 取队列第一个（最早入队的 waiting 用户）
+        const { data: q } = await sb.from('queue').select('*, users(username, main_account)').eq('status', 'waiting').order('created_at', { ascending: true }).limit(1);
         if (q && q.length > 0) {
           const target = q[0];
-          const { data: targetUser } = await sb.from('users').select('main_account').eq('id', target.user_id).single();
-          if (targetUser && targetUser.main_account) {
-            const { data: task } = await sb.from('tasks').insert({
-              giver_id: user.value.id, receiver_id: target.user_id, article_url: targetUser.main_account, status: 'pending'
-            }).select().single();
-            currentTask.value = task;
-          } else {
+          // 排除自己
+          if (target.user_id === user.value.id) {
             currentTask.value = null;
+          } else {
+            const targetUser = target.users;
+            if (targetUser && targetUser.main_account) {
+              const { data: task } = await sb.from('tasks').insert({
+                giver_id: user.value.id, receiver_id: target.user_id, article_url: targetUser.main_account, status: 'pending'
+              }).select().single();
+              task.target_user = targetUser.username;
+              currentTask.value = task;
+            } else {
+              currentTask.value = null;
+            }
           }
         } else {
-          // 测试模式：队列为空时，展示测试文章供点赞
-          currentTask.value = { id: 'test', article_url: testArticle.url, target_user: testArticle.author, is_test: true };
+          currentTask.value = null;
         }
       }
       loadingTask.value = false;
@@ -624,15 +647,18 @@ createApp({
       }
       await sb.from('logs').insert({ giver: profile.username, receiver: receiverName, giver_id: user.value.id, receiver_id: currentTask.value.receiver_id || null });
 
-      // 入队列排队
-      await sb.from('queue').insert({ user_id: user.value.id, position: 0, status: 'waiting' });
+      // 从队列中删除被赞人（已完成收赞）
+      if (currentTask.value.receiver_id) {
+        await sb.from('queue').delete().eq('user_id', currentTask.value.receiver_id).eq('status', 'waiting');
+      }
 
-      // 测试模式：不更新 tasks 表
+      // 入队列排队（自己排入队尾）
+      await sb.from('queue').insert({ user_id: user.value.id, status: 'waiting' });
+
+      // 标记任务完成
       if (!currentTask.value.is_test) {
         const taskId = currentTask.value.id;
-        const receiverId = currentTask.value.receiver_id;
         await sb.from('tasks').update({ status: 'done', done_at: new Date().toISOString() }).eq('id', taskId);
-        await sb.from('users').update({ received_count: (profile.received_count || 0) + 1 }).eq('id', receiverId);
       }
 
       showToast('验证通过！点赞完成，你的收赞号已排入队列', 'success');
@@ -645,21 +671,38 @@ createApp({
 
     async function loadQueue() {
       queueLoading.value = true;
-      const { data, error } = await sb.from('queue').select('*, users(username)').order('position', { ascending: true }).limit(50);
+      const { data, error } = await sb.from('queue').select('*, users(username, main_account)').order('created_at', { ascending: true }).limit(50);
       if (data && data.length > 0) {
-        queue.value = data.map((item, i) => ({ ...item, position: i + 1 }));
+        const myId = user.value?.id;
+        queue.value = data.map((item, i) => ({
+          ...item,
+          position: i + 1,
+          is_me: item.user_id === myId,
+          is_first: i === 0,
+        }));
       } else {
-        // 测试模式：显示测试队列
-        queue.value = [{ position: 1, status: 'waiting', users: { username: testArticle.author }, is_test: true }];
+        queue.value = [];
       }
       queueLoading.value = false;
     }
 
     async function loadLogs() {
       logLoading.value = true;
-      const { data, error } = await sb.from('logs').select('*').order('created_at', { ascending: false }).limit(50);
+      const myId = user.value?.id;
+      const myName = profile.username;
+      // 查询与我相关的日志：我给别人的赞 + 别人给我的赞
+      const { data, error } = await sb.from('logs')
+        .select('*')
+        .or(`giver_id.eq.${myId},receiver_id.eq.${myId}`)
+        .order('created_at', { ascending: false })
+        .limit(50);
       if (data) {
-        logs.value = data;
+        logs.value = data.map(log => ({
+          ...log,
+          is_me_giving: log.giver_id === myId,
+        }));
+      } else {
+        logs.value = [];
       }
       logLoading.value = false;
     }
