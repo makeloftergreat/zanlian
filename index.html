@@ -378,7 +378,9 @@ a{color:var(--accent);text-decoration:none}
           </div>
           <div class="task-actions">
             <a :href="currentTask.article_url" target="_blank" class="btn-go">去点赞</a>
-            <button class="btn-confirm" @click="confirmTask">确认完成</button>
+            <button class="btn-confirm" @click="confirmTask" :disabled="verifying">
+              {{ verifying ? '验证中...' : '确认完成' }}
+            </button>
           </div>
         </div>
         <div class="empty-state" v-else>
@@ -484,6 +486,7 @@ createApp({
     const user = ref(null);
     const loading = ref(false);
     const loadingTask = ref(false);
+    const verifying = ref(false);
     const queueLoading = ref(false);
     const logLoading = ref(false);
     const showAuth = ref(null);
@@ -572,13 +575,45 @@ createApp({
       if (profile.last_given_date === today && profile.today_given >= 20) {
         showToast('今日点赞已达上限（20/20）', 'error'); return;
       }
+
+      // 验证点赞：调用服务端验证接口
+      verifying.value = true;
+      try {
+        const verifyResp = await fetch('/api/verify-like', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            article_url: currentTask.value.article_url,
+            liker_blog: profile.username,
+          }),
+        });
+        const verifyData = await verifyResp.json();
+
+        if (!verifyResp.ok || verifyData.error) {
+          showToast('验证失败：' + (verifyData.error || '服务异常'), 'error');
+          verifying.value = false;
+          return;
+        }
+
+        if (!verifyData.verified) {
+          showToast('未检测到你的点赞，请先去文章页点红心后再确认', 'error');
+          verifying.value = false;
+          return;
+        }
+      } catch (err) {
+        showToast('验证服务异常：' + err.message, 'error');
+        verifying.value = false;
+        return;
+      }
+      verifying.value = false;
+
       // 测试模式：只更新本地状态，不写数据库
       if (currentTask.value.is_test) {
         profile.given_count += 1;
         profile.today_given = (profile.last_given_date === today ? profile.today_given : 0) + 1;
         profile.last_given_date = today;
         await sb.from('users').update({ given_count: profile.given_count, today_given: profile.today_given, last_given_date: today }).eq('id', user.value.id);
-        showToast('测试点赞完成！你的创作号已排入队列', 'success');
+        showToast('验证通过！测试点赞完成，你的收赞号已排入队列', 'success');
         currentTask.value = null;
         await loadTask();
         await loadQueue();
@@ -593,7 +628,7 @@ createApp({
       await sb.from('users').update({ received_count: sb.rpc('increment', { x: 1 }) }).eq('id', receiverId);
       await sb.from('queue').insert({ user_id: user.value.id, position: 0, status: 'waiting' });
       await sb.from('logs').insert({ giver: profile.username, receiver_id: receiverId });
-      showToast('点赞完成！你的创作号已排入队列', 'success');
+      showToast('验证通过！点赞完成，你的收赞号已排入队列', 'success');
       currentTask.value = null;
       await loadProfile();
       await loadTask();
@@ -748,7 +783,7 @@ createApp({
     });
 
     return {
-      user, loading, loadingTask, queueLoading, logLoading, showAuth, authError, tab, faqOpen,
+      user, loading, loadingTask, verifying, queueLoading, logLoading, showAuth, authError, tab, faqOpen,
       currentTask, queue, logs, toast, regForm, loginForm, profile, faqs,
       setupForm, showSetup, saveSetup, skipSetup,
       showSettingsModal, settingsForm, openSettings, saveSettings,
